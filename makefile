@@ -1,5 +1,7 @@
+GOPRIVATE?="github.com/aptible/cloud-api-clients"
+
 init:
-	go mod download
+	GOPRIVATE=$(GOPRIVATE) go mod download
 .PHONY: init
 
 build:

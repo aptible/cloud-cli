@@ -3,12 +3,12 @@ module github.com/aptible/cloud-cli
 go 1.17
 
 require (
-	github.com/aptible/cloud-api-clients v0.0.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 )
 
 require (
+	github.com/aptible/cloud-api-clients/clients/go v0.0.0-20220623143228-e918b5836611 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -33,4 +33,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.0 // indirect
 )
 
-replace github.com/aptible/cloud-api-clients v0.0.0 => ../cloud-api-clients/clients/go
+// replace github.com/aptible/cloud-api-clients v0.0.0 => ../cloud-api-clients/clients/go

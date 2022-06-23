@@ -1,7 +1,7 @@
 package proto
 
 import (
-	client "github.com/aptible/cloud-api-clients"
+	client "github.com/aptible/cloud-api-clients/clients/go"
 )
 
 type LoginInput struct {
