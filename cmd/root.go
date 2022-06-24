@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -15,12 +13,10 @@ var (
 	cfgFile    string
 	token      string
 	authDomain string
+	orgID      string
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "aptible",
-	Short: "aptible is a command line interface to the Aptible.com platform.",
-	Long: `aptible is a command line interface to the Aptible.com platform.
+var desc = `aptible is a command line interface to the Aptible.com platform.
 
 It allows users to manage authentication, application launch,
 deployment, logging, and more with just the one command.
@@ -30,62 +26,71 @@ deployment, logging, and more with just the one command.
 * View a deployed web application with the open command
 * View detailed information about an app or datastore with the info command
 
-To read more, use the docs command to view Aptible's help on the web.`,
-}
+To read more, use the docs command to view Aptible's help on the web.`
 
-var tokenObj map[string]string
-
-func findToken(home string, domain string) string {
-	text, err := ioutil.ReadFile(path.Join(home, ".aptible", "tokens.json"))
-	if err != nil {
-		return ""
+func NewRootCmd() *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:   "aptible",
+		Short: "aptible is a command line interface to the Aptible.com platform.",
+		Long:  desc,
 	}
-	json.Unmarshal(text, &tokenObj)
-	return string(tokenObj[domain])
+
+	vconfig := viper.New()
+	cobra.OnInitialize(initConfig(vconfig, rootCmd))
+
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.aptible.yaml)")
+	rootCmd.PersistentFlags().StringVar(&token, "token", "", "jwt token")
+	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "https://auth.aptible.com", "auth domain")
+	rootCmd.PersistentFlags().StringVar(&orgID, "org", "", "organization id")
+
+	envCmd := NewEnvCmd(vconfig)
+	dsCmd := NewDatastoreCmd(vconfig)
+
+	rootCmd.AddCommand(
+		dsCmd,
+		envCmd,
+	)
+
+	return rootCmd
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
+func Execute(root *cobra.Command) {
+	err := root.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
 
-func init() {
-	cobra.OnInitialize(initConfig)
+func initConfig(vconfig *viper.Viper, root *cobra.Command) func() {
+	return func() {
+		home, err := os.UserHomeDir()
+		cobra.CheckErr(err)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.aptible.yaml)")
-	rootCmd.PersistentFlags().StringVar(&token, "token", "", "jwt token")
-	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "https://auth.aptible.com", "auth domain")
+		if cfgFile != "" {
+			// Use config file from the flag.
+			vconfig.SetConfigFile(cfgFile)
+		} else {
+			vconfig.AddConfigPath(home)
+			vconfig.SetConfigName(".aptible")
+			vconfig.SetConfigType("yaml")
+		}
 
-	rootCmd.AddCommand(datastoreCmd)
-	rootCmd.AddCommand(envCmd)
-}
+		vconfig.AutomaticEnv()
 
-func initConfig() {
-	home, err := os.UserHomeDir()
-	cobra.CheckErr(err)
+		if token == "" {
+			token = findToken(home, authDomain)
+		}
+		vconfig.Set("token", token)
 
-	if token == "" {
-		token = findToken(home, authDomain)
+		if err := vconfig.ReadInConfig(); err == nil {
+			fmt.Println("Using config file:", vconfig.ConfigFileUsed())
+		}
+
+		config := NewCloudConfig(vconfig)
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, ctxCloudConfig{}, config)
+		root.SetContext(ctx)
 	}
-	fmt.Println(token)
-
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".aptible")
-		viper.SetConfigType("yaml")
-	}
-
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
-
 }

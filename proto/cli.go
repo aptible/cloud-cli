@@ -23,7 +23,7 @@ type CLI interface {
 	// Login(params *LoginInput) error
 	// Version() string
 
-	ListOrgs() error
+	// ListOrgs() error
 	// ListApps(orgID string) error
 	// ListsLogs(orgID string) error
 	// ListLogsForAsset(orgID string, envID string, assetID string) error
@@ -36,8 +36,8 @@ type CLI interface {
 	CreateEnvironment(orgID string, params *client.EnvironmentInput) error
 	RemoveEnvironment(orgID string, envID string) error
 
-	CreateDatastore(input *CreateAssetParams) error
-	ListDatastores(orgID string) error
+	// CreateDatastore(input *CreateAssetParams) error
+	// ListDatastores(orgID string) error
 
 	// CreateBackup(orgID string, envID string, assetID string) error
 	// DeleteDatastore(orgID string, envID string, assetID string) error
