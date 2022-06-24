@@ -43,8 +43,8 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "https://auth.aptible.com", "auth domain")
 	rootCmd.PersistentFlags().StringVar(&orgID, "org", "", "organization id")
 
-	envCmd := NewEnvCmd(vconfig)
-	dsCmd := NewDatastoreCmd(vconfig)
+	envCmd := NewEnvCmd()
+	dsCmd := NewDatastoreCmd()
 
 	rootCmd.AddCommand(
 		dsCmd,
@@ -91,6 +91,7 @@ func initConfig(vconfig *viper.Viper, root *cobra.Command) func() {
 		config := NewCloudConfig(vconfig)
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, ctxCloudConfig{}, config)
+		fmt.Println(ctx)
 		root.SetContext(ctx)
 	}
 }

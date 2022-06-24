@@ -16,7 +16,11 @@ import (
 type ctxCloudConfig struct{}
 
 func GetCloudConfig(cmd *cobra.Command) *proto.CloudConfig {
-	return cmd.Context().Value(ctxCloudConfig{}) //.Value(ctxCloudConfig{}).(*proto.CloudConfig)
+	val := cmd.Context().Value(ctxCloudConfig{})
+	if val == nil {
+		return nil
+	}
+	return val.(*proto.CloudConfig)
 }
 
 type RunE func(cmd *cobra.Command, args []string) error

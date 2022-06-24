@@ -4,40 +4,40 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-func dsCreateRun(vconfig *viper.Viper) RunE {
+func dsCreateRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(vconfig)
+		config := GetCloudConfig(cmd)
 		fmt.Println(config)
-		orgID := vconfig.GetString("org")
+		orgID := config.Vconfig.GetString("org")
 		fmt.Println(orgID)
 		return nil
 	}
 }
 
-func dsDestroyRun(vconfig *viper.Viper) RunE {
+func dsDestroyRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(vconfig)
+		config := GetCloudConfig(cmd)
 		fmt.Println(config)
-		orgID := vconfig.GetString("org")
+		orgID := config.Vconfig.GetString("org")
 		fmt.Println(orgID)
 		return nil
 	}
 }
 
-func dsListRun(vconfig *viper.Viper) RunE {
+func dsListRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(vconfig)
+		fmt.Println(cmd.Context())
+		config := GetCloudConfig(cmd)
 		fmt.Println(config)
-		orgID := vconfig.GetString("org")
+		orgID := config.Vconfig.GetString("org")
 		fmt.Println(orgID)
 		return nil
 	}
 }
 
-func NewDatastoreCmd(vconfig *viper.Viper) *cobra.Command {
+func NewDatastoreCmd() *cobra.Command {
 	datastoreCmd := &cobra.Command{
 		Use:     "datastore",
 		Short:   "The datastore subcommand helps manage your Aptible datastores.",
@@ -50,7 +50,7 @@ func NewDatastoreCmd(vconfig *viper.Viper) *cobra.Command {
 		Short:   "provision a new datastore.",
 		Long:    `The datastore create command will provision a new datastore.`,
 		Aliases: []string{"c", "deploy"},
-		RunE:    dsCreateRun(vconfig),
+		RunE:    dsCreateRun(),
 	}
 
 	dsDestroyCmd := &cobra.Command{
@@ -58,7 +58,7 @@ func NewDatastoreCmd(vconfig *viper.Viper) *cobra.Command {
 		Short:   "permentantly remove the datastore.",
 		Long:    `The datastore destroy command will permentantly remove the datastore.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
-		RunE:    dsDestroyRun(vconfig),
+		RunE:    dsDestroyRun(),
 	}
 
 	dsListCmd := &cobra.Command{
@@ -66,7 +66,7 @@ func NewDatastoreCmd(vconfig *viper.Viper) *cobra.Command {
 		Short:   "list all datastores within an organization.",
 		Long:    `The datastore list command will list all datastores within an organization.`,
 		Aliases: []string{"ls"},
-		RunE:    dsListRun(vconfig),
+		RunE:    dsListRun(),
 	}
 
 	var engine string
