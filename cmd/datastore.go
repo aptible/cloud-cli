@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func dsCreateRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := GetCloudConfig(cmd)
+		config := NewCloudConfig(viper.GetViper())
 		fmt.Println(config)
 		orgID := config.Vconfig.GetString("org")
 		fmt.Println(orgID)
@@ -18,7 +19,7 @@ func dsCreateRun() RunE {
 
 func dsDestroyRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := GetCloudConfig(cmd)
+		config := NewCloudConfig(viper.GetViper())
 		fmt.Println(config)
 		orgID := config.Vconfig.GetString("org")
 		fmt.Println(orgID)
@@ -28,8 +29,7 @@ func dsDestroyRun() RunE {
 
 func dsListRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		fmt.Println(cmd.Context())
-		config := GetCloudConfig(cmd)
+		config := NewCloudConfig(viper.GetViper())
 		fmt.Println(config)
 		orgID := config.Vconfig.GetString("org")
 		fmt.Println(orgID)

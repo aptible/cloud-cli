@@ -5,11 +5,12 @@ import (
 
 	apiclient "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func envCreateRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := GetCloudConfig(cmd)
+		config := NewCloudConfig(viper.GetViper())
 		orgID := config.Vconfig.GetString("org")
 		params := apiclient.EnvironmentInput{
 			Name: args[0],
@@ -26,7 +27,7 @@ func envCreateRun() RunE {
 
 func envDestroyRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := GetCloudConfig(cmd)
+		config := NewCloudConfig(viper.GetViper())
 		orgID := config.Vconfig.GetString("org")
 		envID := ""
 		err := config.Cc.DestroyEnvironment(orgID, envID)
@@ -39,7 +40,7 @@ func envDestroyRun() RunE {
 
 func envListRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := GetCloudConfig(cmd)
+		config := NewCloudConfig(viper.GetViper())
 		orgID := config.Vconfig.GetString("org")
 		envs, err := config.Cc.ListEnvironments(orgID)
 		if err != nil {

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -35,8 +34,7 @@ func NewRootCmd() *cobra.Command {
 		Long:  desc,
 	}
 
-	vconfig := viper.New()
-	cobra.OnInitialize(initConfig(vconfig, rootCmd))
+	cobra.OnInitialize(initConfig())
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.aptible.yaml)")
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "jwt token")
@@ -63,8 +61,9 @@ func Execute(root *cobra.Command) {
 	}
 }
 
-func initConfig(vconfig *viper.Viper, root *cobra.Command) func() {
+func initConfig() func() {
 	return func() {
+		vconfig := viper.GetViper()
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
@@ -87,11 +86,5 @@ func initConfig(vconfig *viper.Viper, root *cobra.Command) func() {
 		if err := vconfig.ReadInConfig(); err == nil {
 			fmt.Println("Using config file:", vconfig.ConfigFileUsed())
 		}
-
-		config := NewCloudConfig(vconfig)
-		ctx := context.Background()
-		ctx = context.WithValue(ctx, ctxCloudConfig{}, config)
-		fmt.Println(ctx)
-		root.SetContext(ctx)
 	}
 }
