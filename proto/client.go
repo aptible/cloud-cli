@@ -13,6 +13,9 @@ type CloudClient interface {
 	CreateEnvironment(orgID string, params client.EnvironmentInput) (*client.EnvironmentOutput, error)
 	DestroyEnvironment(orgID string, envID string) error
 
+	CreateOrg(orgID string, params client.OrganizationInput) (*client.OrganizationOutput, error)
+	FindOrg(orgID string) (*client.OrganizationOutput, error)
+
 	// ListAssetTypesForEnvironment(envID string) error
 	// CreateAsset(orgID string, envID string, params *client.AssetInput) error
 	// UpdateAsset(orgID string, envID string, assetID string, assetInput *client.AssetInput) error

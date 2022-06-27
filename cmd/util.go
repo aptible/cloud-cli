@@ -43,10 +43,14 @@ func NewContext(token string) context.Context {
 
 func NewCloudConfig(v *viper.Viper) *proto.CloudConfig {
 	conf := apiclient.NewConfiguration()
+	host := v.GetString("api-domain")
+	conf.Host = host
+	conf.Scheme = "https"
 	apiClient := apiclient.NewAPIClient(conf)
 	token := v.GetString("token")
 	ctx := NewContext(token)
-	cc := client.NewClient(ctx, apiClient)
+	debug := v.GetBool("debug")
+	cc := client.NewClient(ctx, apiClient, debug)
 
 	return &proto.CloudConfig{
 		Vconfig: v,

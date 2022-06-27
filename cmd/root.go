@@ -12,7 +12,9 @@ var (
 	cfgFile    string
 	token      string
 	authDomain string
+	apiDomain  string
 	orgID      string
+	debug      bool
 )
 
 var desc = `aptible is a command line interface to the Aptible.com platform.
@@ -38,15 +40,25 @@ func NewRootCmd() *cobra.Command {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.aptible.yaml)")
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "jwt token")
-	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "https://auth.aptible.com", "auth domain")
+	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "auth.aptible.com", "auth domain")
+	rootCmd.PersistentFlags().StringVar(&apiDomain, "api-domain", "cloud-api.aptible.com", "api domain")
 	rootCmd.PersistentFlags().StringVar(&orgID, "org", "", "organization id")
+	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "debug logging")
+
+	viper.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token"))
+	viper.BindPFlag("auth-domain", rootCmd.PersistentFlags().Lookup("auth-domain"))
+	viper.BindPFlag("api-domain", rootCmd.PersistentFlags().Lookup("api-domain"))
+	viper.BindPFlag("org", rootCmd.PersistentFlags().Lookup("org"))
+	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 
 	envCmd := NewEnvCmd()
 	dsCmd := NewDatastoreCmd()
+	orgCmd := NewOrgCmd()
 
 	rootCmd.AddCommand(
 		dsCmd,
 		envCmd,
+		orgCmd,
 	)
 
 	return rootCmd
@@ -79,7 +91,7 @@ func initConfig() func() {
 		vconfig.AutomaticEnv()
 
 		if token == "" {
-			token = findToken(home, authDomain)
+			token = findToken(home, fmt.Sprintf("https://%s", authDomain))
 		}
 		vconfig.Set("token", token)
 
