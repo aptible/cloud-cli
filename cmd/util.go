@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path"
 
@@ -37,7 +38,7 @@ func findToken(home string, domain string) string {
 
 func NewContext(token string) context.Context {
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, apiclient.ContextAccessToken, token)
+	ctx = context.WithValue(ctx, apiclient.ContextAccessToken, fmt.Sprintf("Bearer %s", token))
 	return ctx
 }
 
