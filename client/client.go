@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/aptible/cloud-cli/proto"
+	"github.com/davecgh/go-spew/spew"
 
 	client "github.com/aptible/cloud-api-clients/clients/go"
 )
@@ -30,6 +31,7 @@ func (c *Client) PrintResponse(r *http.Response) error {
 		return nil
 	}
 
+	fmt.Println(r.Request.Body)
 	reqDump, err := httputil.DumpRequestOut(r.Request, true)
 	if err != nil {
 		fmt.Println(err)
@@ -68,7 +70,10 @@ func (c *Client) DestroyEnvironment(orgID string, envID string) error {
 }
 
 func (c *Client) CreateOrg(orgID string, params client.OrganizationInput) (*client.OrganizationOutput, error) {
-	org, r, err := c.ApiClient.OrganizationsApi.PutOrganizationApiV1OrganizationsOrganizationIdPut(c.Ctx, orgID).OrganizationInput(params).Execute()
+	fmt.Println(params)
+	request := c.ApiClient.OrganizationsApi.PutOrganizationApiV1OrganizationsOrganizationIdPut(c.Ctx, orgID).OrganizationInput(params)
+	spew.Dump(request)
+	org, r, err := request.Execute()
 	c.PrintResponse(r)
 	return org, err
 }

@@ -13,15 +13,12 @@ func orgCreateRun() RunE {
 		config := NewCloudConfig(viper.GetViper())
 		orgID := config.Vconfig.GetString("org")
 
-		/* curOrg, _ := config.Cc.FindOrg(orgID)
-		if curOrg != nil {
-			fmt.Printf("org already created: %s", curOrg.Name)
-			return nil
-		}
-		fmt.Println("org not found, creating new one") */
-
+		output := make(map[string]interface{})
 		params := apiclient.OrganizationInput{
-			Name: args[0],
+			Name:           args[0],
+			BaaStatus:      "pending",
+			AwsOu:          "idk",
+			ContactDetails: output,
 		}
 		org, err := config.Cc.CreateOrg(orgID, params)
 		if err != nil {
