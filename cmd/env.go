@@ -2,25 +2,44 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	apiclient "github.com/aptible/cloud-api-clients/clients/go"
+	"github.com/aptible/cloud-cli/ui/common"
+	"github.com/aptible/cloud-cli/ui/fetch"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func envCreateRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
-		orgID := config.Vconfig.GetString("org")
+		// config := NewCloudConfig(viper.GetViper())
+		// orgID := config.Vconfig.GetString("org")
 		params := apiclient.EnvironmentInput{
 			Name: args[0],
 		}
-		env, err := config.Cc.CreateEnvironment(orgID, params)
+
+		/* env, err := config.Cc.CreateEnvironment(orgID, params)
+		if err != nil {
+			return err
+		} */
+
+		r := func() (interface{}, error) {
+			time.Sleep(2 * time.Second)
+			return params, nil
+		}
+		model := fetch.NewModel(r, "creating environment", common.DefaultStyles())
+		p := tea.NewProgram(model)
+		m, err := p.StartReturningModel()
 		if err != nil {
 			return err
 		}
+		n := m.(fetch.Model)
+		res := n.Result.(apiclient.EnvironmentInput)
 
-		fmt.Println(fmt.Sprintf("new env id: %s\n", env.Id))
+		fmt.Printf("Result: %+v\n", res)
 		return nil
 	}
 }
