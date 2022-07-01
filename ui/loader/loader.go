@@ -8,12 +8,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type errMsg error
-
 type Model struct {
 	Spinner spinner.Model
-	Err     error
-	Exit    bool
 	Text    string
 }
 
@@ -39,10 +35,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.Spinner, cmd = m.Spinner.Update(msg)
 		return m, cmd
 
-	case errMsg:
-		m.Err = msg
-		return m, nil
-
 	default:
 		var cmd tea.Cmd
 		m.Spinner, cmd = m.Spinner.Update(msg)
@@ -56,9 +48,6 @@ func (m Model) Tick() tea.Msg {
 }
 
 func (m Model) View() string {
-	if m.Err != nil {
-		return m.Err.Error()
-	}
 	str := fmt.Sprintf("%s %s...\n", m.Spinner.View(), m.Text)
 	return str
 }
