@@ -19,7 +19,7 @@ const (
 )
 
 type FetchSuccess struct {
-	Data interface{}
+	Result interface{}
 }
 
 type errMsg error
@@ -35,9 +35,9 @@ type Model struct {
 
 type Fx func() (interface{}, error)
 
-func NewModel(io Fx, text string, styles common.Styles) Model {
+func NewModel(io Fx, text string) Model {
 	s := loader.NewModel(text)
-	return Model{spinner: s, io: io, status: submitting, styles: styles}
+	return Model{spinner: s, io: io, status: submitting, styles: common.MainStyles}
 }
 
 func create(fx Fx) tea.Cmd {
@@ -47,13 +47,13 @@ func create(fx Fx) tea.Cmd {
 			return err
 		}
 
-		return FetchSuccess{Data: res}
+		return FetchSuccess{Result: res}
 	}
 }
 
 func successCmd() tea.Cmd {
 	return func() tea.Msg {
-		time.Sleep(2 * time.Second)
+		time.Sleep(300 * time.Millisecond)
 		return tea.Quit()
 	}
 }
@@ -81,7 +81,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case FetchSuccess:
 		m.status = success
-		m.Result = msg.Data
+		m.Result = msg.Result
 		return m, successCmd()
 
 	case errMsg:

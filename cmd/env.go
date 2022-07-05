@@ -5,7 +5,6 @@ import (
 	"time"
 
 	apiclient "github.com/aptible/cloud-api-clients/clients/go"
-	"github.com/aptible/cloud-cli/ui/common"
 	"github.com/aptible/cloud-cli/ui/fetch"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -26,16 +25,18 @@ func envCreateRun() RunE {
 			return err
 		} */
 
-		r := func() (interface{}, error) {
+		fx := func() (interface{}, error) {
 			time.Sleep(2 * time.Second)
 			return params, nil
 		}
-		model := fetch.NewModel(r, "creating environment", common.DefaultStyles())
+		model := fetch.NewModel(fx, "creating environment")
+
 		p := tea.NewProgram(model)
 		m, err := p.StartReturningModel()
 		if err != nil {
 			return err
 		}
+
 		n := m.(fetch.Model)
 		res := n.Result.(apiclient.EnvironmentInput)
 

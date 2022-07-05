@@ -47,3 +47,5 @@ func DefaultStyles() Styles {
 
 	return s
 }
+
+var MainStyles = DefaultStyles()
