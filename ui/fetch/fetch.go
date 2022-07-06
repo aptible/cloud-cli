@@ -86,7 +86,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case errMsg:
 		m.Err = msg
-		return m, nil
+		fmt.Println(msg)
+		return m, tea.Quit
 
 	default:
 		return m, nil

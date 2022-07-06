@@ -30,7 +30,8 @@ func (c *Client) PrintResponse(r *http.Response) error {
 		return nil
 	}
 
-	fmt.Println(r.Request.Body)
+	// fmt.Println(r.Request.Body)
+	fmt.Println(r)
 	reqDump, err := httputil.DumpRequestOut(r.Request, true)
 	if err != nil {
 		fmt.Println(err)
@@ -57,8 +58,12 @@ func (c *Client) ListEnvironments(orgID string) ([]client.EnvironmentOutput, err
 }
 
 func (c *Client) CreateEnvironment(orgID string, params client.EnvironmentInput) (*client.EnvironmentOutput, error) {
-	env, r, err := c.ApiClient.EnvironmentsApi.CreateEnvironmentApiV1OrganizationsOrganizationIdEnvironmentsPost(c.Ctx, orgID).EnvironmentInput(params).Execute()
+	request := c.ApiClient.EnvironmentsApi.CreateEnvironmentApiV1OrganizationsOrganizationIdEnvironmentsPost(c.Ctx, orgID).EnvironmentInput(params)
+	env, r, err := request.Execute()
 	c.PrintResponse(r)
+	if err != nil {
+		return nil, err
+	}
 	return env, err
 }
 

@@ -10,6 +10,8 @@ import (
 	apiclient "github.com/aptible/cloud-api-clients/clients/go"
 	client "github.com/aptible/cloud-cli/client"
 	proto "github.com/aptible/cloud-cli/proto"
+	"github.com/aptible/cloud-cli/ui/fetch"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -46,9 +48,10 @@ func NewCloudConfig(v *viper.Viper) *proto.CloudConfig {
 	conf := apiclient.NewConfiguration()
 	host := v.GetString("api-domain")
 	conf.Host = host
-	conf.Scheme = "https"
+	conf.Scheme = "http"
 	apiClient := apiclient.NewAPIClient(conf)
 	token := v.GetString("token")
+	fmt.Println(token)
 	ctx := NewContext(token)
 	debug := v.GetBool("debug")
 	cc := client.NewClient(ctx, apiClient, debug)
@@ -58,4 +61,23 @@ func NewCloudConfig(v *viper.Viper) *proto.CloudConfig {
 		Cc:      cc,
 		Ctx:     ctx,
 	}
+}
+
+func FetchWithOutput[T interface{}](model tea.Model, result *T) error {
+	p := tea.NewProgram(model)
+	m, err := p.StartReturningModel()
+	if err != nil {
+		return err
+	}
+
+	n := m.(fetch.Model)
+	switch n.Result.(type) {
+	case T:
+		r := n.Result.(T)
+		result = &r
+	default:
+		result = nil
+	}
+
+	return nil
 }
