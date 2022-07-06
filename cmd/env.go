@@ -25,11 +25,10 @@ func envCreateRun() RunE {
 			return err
 		} */
 
-		fx := func() (interface{}, error) {
+		model := fetch.NewModel("creating environment", func() (interface{}, error) {
 			time.Sleep(2 * time.Second)
 			return params, nil
-		}
-		model := fetch.NewModel(fx, "creating environment")
+		})
 
 		p := tea.NewProgram(model)
 		m, err := p.StartReturningModel()

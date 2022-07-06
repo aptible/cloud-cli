@@ -2,7 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
+	apiclient "github.com/aptible/cloud-api-clients/clients/go"
+	"github.com/aptible/cloud-cli/ui/fetch"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -12,6 +16,32 @@ func dsCreateRun() RunE {
 		config := NewCloudConfig(viper.GetViper())
 		orgID := config.Vconfig.GetString("org")
 		fmt.Println(orgID)
+
+		params := apiclient.AssetInput{
+			Asset:        "",
+			AssetVersion: "",
+		}
+
+		/* env, err := config.Cc.CreateAsset(orgID, envID, params)
+		if err != nil {
+			return err
+		} */
+
+		model := fetch.NewModel("creating datastore", func() (interface{}, error) {
+			time.Sleep(2 * time.Second)
+			return params, nil
+		})
+
+		p := tea.NewProgram(model)
+		m, err := p.StartReturningModel()
+		if err != nil {
+			return err
+		}
+
+		n := m.(fetch.Model)
+		res := n.Result.(apiclient.AssetInput)
+
+		fmt.Printf("Result: %+v\n", res)
 		return nil
 	}
 }

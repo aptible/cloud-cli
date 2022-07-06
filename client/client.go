@@ -80,3 +80,9 @@ func (c *Client) FindOrg(orgID string) (*client.OrganizationOutput, error) {
 	c.PrintResponse(r)
 	return org, err
 }
+
+func (c *Client) CreateAsset(orgID string, envID string, params client.AssetInput) (*client.AssetOutput, error) {
+	asset, r, err := c.ApiClient.AssetsApi.CreateAssetApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsPost(c.Ctx, orgID, envID).AssetInput(params).Execute()
+	c.PrintResponse(r)
+	return asset, err
+}

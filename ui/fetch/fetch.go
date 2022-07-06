@@ -35,7 +35,7 @@ type Model struct {
 
 type Fx func() (interface{}, error)
 
-func NewModel(io Fx, text string) Model {
+func NewModel(text string, io Fx) Model {
 	s := loader.NewModel(text)
 	return Model{spinner: s, io: io, status: submitting, styles: common.MainStyles}
 }
