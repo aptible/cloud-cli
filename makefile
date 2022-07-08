@@ -25,10 +25,10 @@ clean:
 .PHONY: clean
 
 lint:
-	go vet ./...
+	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:latest golangci-lint run -E goimports -E godot
 .PHONY: lint
 
-test:
+test: lint
 	go test ./...
 .PHONY: test
 
