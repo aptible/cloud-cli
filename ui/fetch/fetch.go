@@ -109,3 +109,20 @@ func (m Model) View() string {
 	}
 	return str
 }
+
+func FetchAny(model tea.Model) error {
+	p := tea.NewProgram(model)
+	err := p.Start()
+	return err
+}
+
+func FetchWithOutput(model tea.Model) (*Model, error) {
+	p := tea.NewProgram(model)
+	m, err := p.StartReturningModel()
+	if err != nil {
+		return nil, err
+	}
+
+	n := m.(Model)
+	return &n, nil
+}

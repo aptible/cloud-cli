@@ -13,6 +13,7 @@ type CloudClient interface {
 	CreateEnvironment(orgID string, params client.EnvironmentInput) (*client.EnvironmentOutput, error)
 	DestroyEnvironment(orgID string, envID string) error
 
+	ListOrgs() ([]client.OrganizationOutput, error)
 	CreateOrg(orgID string, params client.OrganizationInput) (*client.OrganizationOutput, error)
 	FindOrg(orgID string) (*client.OrganizationOutput, error)
 

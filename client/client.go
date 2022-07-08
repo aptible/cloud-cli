@@ -30,9 +30,12 @@ func (c *Client) PrintResponse(r *http.Response) error {
 		return nil
 	}
 
-	// fmt.Println(r.Request.Body)
-	fmt.Println(r)
-	reqDump, err := httputil.DumpRequestOut(r.Request, true)
+	if r == nil {
+		return fmt.Errorf("response is nil")
+	}
+
+	fmt.Println("--- DEBUG ---")
+	reqDump, err := httputil.DumpRequestOut(r.Request, false)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -52,7 +55,8 @@ func (c *Client) PrintResponse(r *http.Response) error {
 }
 
 func (c *Client) ListEnvironments(orgID string) ([]client.EnvironmentOutput, error) {
-	env, r, err := c.ApiClient.EnvironmentsApi.GetEnvironmentsApiV1OrganizationsOrganizationIdEnvironmentsGet(c.Ctx, orgID).Execute()
+	request := c.ApiClient.EnvironmentsApi.GetEnvironmentsApiV1OrganizationsOrganizationIdEnvironmentsGet(c.Ctx, orgID)
+	env, r, err := request.Execute()
 	c.PrintResponse(r)
 	return env, err
 }
@@ -61,9 +65,6 @@ func (c *Client) CreateEnvironment(orgID string, params client.EnvironmentInput)
 	request := c.ApiClient.EnvironmentsApi.CreateEnvironmentApiV1OrganizationsOrganizationIdEnvironmentsPost(c.Ctx, orgID).EnvironmentInput(params)
 	env, r, err := request.Execute()
 	c.PrintResponse(r)
-	if err != nil {
-		return nil, err
-	}
 	return env, err
 }
 
@@ -87,7 +88,15 @@ func (c *Client) FindOrg(orgID string) (*client.OrganizationOutput, error) {
 }
 
 func (c *Client) CreateAsset(orgID string, envID string, params client.AssetInput) (*client.AssetOutput, error) {
-	asset, r, err := c.ApiClient.AssetsApi.CreateAssetApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsPost(c.Ctx, orgID, envID).AssetInput(params).Execute()
+	request := c.ApiClient.AssetsApi.CreateAssetApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsPost(c.Ctx, envID, orgID).AssetInput(params)
+	asset, r, err := request.Execute()
 	c.PrintResponse(r)
 	return asset, err
+}
+
+func (c *Client) ListOrgs() ([]client.OrganizationOutput, error) {
+	request := c.ApiClient.OrganizationsApi.GetOrganizationsApiV1OrganizationsGet(c.Ctx)
+	orgs, r, err := request.Execute()
+	c.PrintResponse(r)
+	return orgs, err
 }

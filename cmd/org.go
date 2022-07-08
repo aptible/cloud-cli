@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	apiclient "github.com/aptible/cloud-api-clients/clients/go"
+	"github.com/aptible/cloud-cli/ui/fetch"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -14,18 +15,29 @@ func orgCreateRun() RunE {
 		orgID := config.Vconfig.GetString("org")
 
 		output := make(map[string]interface{})
+		var ou string
 		params := apiclient.OrganizationInput{
 			Name:           args[0],
 			BaaStatus:      "pending",
-			AwsOu:          "idk",
+			AwsOu:          &ou,
 			ContactDetails: output,
 		}
-		org, err := config.Cc.CreateOrg(orgID, params)
+
+		model := fetch.NewModel("creating organization", func() (interface{}, error) {
+			return config.Cc.CreateOrg(orgID, params)
+		})
+		result, err := fetch.FetchWithOutput(model)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(fmt.Sprintf("new org: %s\n", org.Name))
+		org := result.Result.(*apiclient.OrganizationOutput)
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("new org: %s\n", org.Name)
 		return nil
 	}
 }
@@ -33,15 +45,20 @@ func orgCreateRun() RunE {
 func orgListRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
-		orgID := config.Vconfig.GetString("org")
-		envs, err := config.Cc.ListEnvironments(orgID)
+		model := fetch.NewModel("fetching organizations", func() (interface{}, error) {
+			return config.Cc.ListOrgs()
+		})
+		result, err := fetch.FetchWithOutput(model)
 		if err != nil {
 			return err
 		}
 
-		for _, env := range envs {
-			fmt.Println(fmt.Println(env.Name))
+		orgs := result.Result.([]apiclient.OrganizationOutput)
+
+		for _, org := range orgs {
+			fmt.Printf("%s %s\n", org.Id, org.Name)
 		}
+
 		return nil
 	}
 }

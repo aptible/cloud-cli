@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	apiclient "github.com/aptible/cloud-api-clients/clients/go"
-	// "github.com/aptible/cloud-cli/ui/fetch"
+	"github.com/aptible/cloud-cli/ui/fetch"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -13,30 +13,24 @@ func envCreateRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
 		orgID := config.Vconfig.GetString("org")
-		fmt.Println(config.Ctx)
+		desc := ""
 		params := apiclient.EnvironmentInput{
-			Name: args[0],
+			Name:        args[0],
+			Description: &desc,
+			Data:        map[string]interface{}{},
 		}
 
-		env, err := config.Cc.CreateEnvironment(orgID, params)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		/* model := fetch.NewModel("creating environment", func() (interface{}, error) {
-			// time.Sleep(2 * time.Second)
-			// return params, nil
-
-			return env, nil
+		model := fetch.NewModel("creating environment", func() (interface{}, error) {
+			return config.Cc.CreateEnvironment(orgID, params)
 		})
 
-		var env apiclient.EnvironmentInput
-		err := FetchWithOutput(model, &env)
+		fetchModel, err := fetch.FetchWithOutput(model)
 		if err != nil {
 			return err
-		} */
+		}
+		env := fetchModel.Result.(apiclient.EnvironmentOutput)
 
-		fmt.Printf("Result: %+v\n", env)
+		fmt.Printf("New environment ID: %s\n", env.Id)
 		return nil
 	}
 }
@@ -45,12 +39,15 @@ func envDestroyRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
 		orgID := config.Vconfig.GetString("org")
-		envID := ""
-		err := config.Cc.DestroyEnvironment(orgID, envID)
-		if err != nil {
-			return err
-		}
-		return nil
+		envID := args[0]
+
+		model := fetch.NewModel("destroying environment", func() (interface{}, error) {
+			err := config.Cc.DestroyEnvironment(orgID, envID)
+			return nil, err
+		})
+
+		err := fetch.FetchAny(model)
+		return err
 	}
 }
 
@@ -58,13 +55,19 @@ func envListRun() RunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
 		orgID := config.Vconfig.GetString("org")
-		envs, err := config.Cc.ListEnvironments(orgID)
+
+		model := fetch.NewModel("fetching environments", func() (interface{}, error) {
+			return config.Cc.ListEnvironments(orgID)
+		})
+		result, err := fetch.FetchWithOutput(model)
 		if err != nil {
 			return err
 		}
 
+		envs := result.Result.([]apiclient.EnvironmentOutput)
+
 		for _, env := range envs {
-			fmt.Println(fmt.Println(env.Name))
+			fmt.Printf("%s %s\n", env.Id, env.Name)
 		}
 		return nil
 	}
@@ -92,6 +95,7 @@ func NewEnvCmd() *cobra.Command {
 		Short:   "permentantly remove the environment.",
 		Long:    `The datastore destroy command will permentantly remove the environment.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
+		Args:    cobra.MinimumNArgs(1),
 		RunE:    envDestroyRun(),
 	}
 

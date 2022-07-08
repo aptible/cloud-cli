@@ -48,6 +48,6 @@ func (m Model) Tick() tea.Msg {
 }
 
 func (m Model) View() string {
-	str := fmt.Sprintf("%s %s...\n", m.Spinner.View(), m.Text)
+	str := fmt.Sprintf("%s %s ...\n", m.Spinner.View(), m.Text)
 	return str
 }
