@@ -13,7 +13,7 @@ var (
 	token      string
 	authDomain string
 	apiDomain  string
-	orgID      string
+	orgId      string
 	debug      bool
 )
 
@@ -42,7 +42,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "jwt token")
 	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "auth.aptible.com", "auth domain")
 	rootCmd.PersistentFlags().StringVar(&apiDomain, "api-domain", "cloud-api.aptible.com", "api domain")
-	rootCmd.PersistentFlags().StringVar(&orgID, "org", "", "organization id")
+	rootCmd.PersistentFlags().StringVar(&orgId, "org", "", "organization id")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "debug logging")
 
 	viper.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token"))
@@ -54,8 +54,10 @@ func NewRootCmd() *cobra.Command {
 	envCmd := NewEnvCmd()
 	dsCmd := NewDatastoreCmd()
 	orgCmd := NewOrgCmd()
+	configCmd := NewConfigCmd()
 
 	rootCmd.AddCommand(
+		configCmd,
 		dsCmd,
 		envCmd,
 		orgCmd,
@@ -91,7 +93,11 @@ func initConfig() func() {
 		vconfig.AutomaticEnv()
 
 		if token == "" {
-			token = findToken(home, fmt.Sprintf("https://%s", authDomain))
+			token, err = findToken(home, fmt.Sprintf("https://%s", authDomain))
+			if err != nil {
+				fmt.Println("Unable to load token")
+				os.Exit(1)
+			}
 		}
 		vconfig.Set("token", token)
 

@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	apiclient "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/aptible/cloud-cli/ui/fetch"
+	"github.com/evertras/bubble-table/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -15,11 +17,37 @@ var (
 	env           string
 )
 
-func dsCreateRun() RunE {
+// dataStoreTable - prints out a table of datastores
+func dataStoreTable(orgOutput interface{}) table.Model {
+	rows := make([]table.Row, 0)
+
+	switch data := orgOutput.(type) {
+	case []apiclient.AssetOutput:
+		for _, asset := range data {
+			rows = append(rows, table.NewRow(table.RowData{
+				"id":     asset.Id,
+				"status": asset.Status,
+			}))
+		}
+	case apiclient.AssetOutput:
+		rows = append(rows, table.NewRow(table.RowData{
+			"id":     data.Id,
+			"status": data.Status,
+		}))
+	}
+
+	return table.New([]table.Column{
+		table.NewColumn("id", "Datastore Id", 40),
+		table.NewColumn("status", "Datastore Status", 40),
+	}).WithRows(rows)
+}
+
+// dsCreateRun - create a datastore
+func dsCreateRun() CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
-		orgID := config.Vconfig.GetString("org")
-		envID := args[0]
+		orgId := config.Vconfig.GetString("org")
+		envId := args[0]
 		name := args[1]
 
 		if engine == "" {
@@ -42,7 +70,7 @@ func dsCreateRun() RunE {
 
 		msg := fmt.Sprintf("creating datastore %s (v%s)", engine, engineVersion)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.CreateAsset(orgID, envID, params)
+			return config.Cc.CreateAsset(orgId, envId, params)
 		})
 
 		result, err := fetch.FetchWithOutput(model)
@@ -56,20 +84,55 @@ func dsCreateRun() RunE {
 	}
 }
 
-func dsDestroyRun() RunE {
+// dsDestroyRun - destroy datastore
+func dsDestroyRun() CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
-		orgID := config.Vconfig.GetString("org")
-		fmt.Println(orgID)
+		orgId := config.Vconfig.GetString("org")
+		fmt.Println(orgId)
 		return nil
 	}
 }
 
-func dsListRun() RunE {
+// dsListRun - list datastores
+func dsListRun() CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
-		orgID := config.Vconfig.GetString("org")
-		fmt.Println(orgID)
+		orgId := config.Vconfig.GetString("org")
+
+		msg := fmt.Sprintf("getting datastores with env id: %s and org id: %s", env, orgId)
+		model := fetch.NewModel(msg, func() (interface{}, error) {
+			return config.Cc.ListAssets(orgId, env)
+		})
+
+		rawResult, err := fetch.FetchWithOutput(model)
+		if err != nil {
+			return err
+		}
+		if rawResult == nil {
+			fmt.Println("No datastores found.")
+			return nil
+		}
+		dsAssetTypes := []string{"rds"}
+		unfilteredResults := rawResult.Result.([]apiclient.AssetOutput)
+		filteredResults := make([]apiclient.AssetOutput, 0)
+		for _, result := range unfilteredResults {
+			for _, acceptedDsType := range dsAssetTypes {
+				if strings.Contains(result.Asset, acceptedDsType) {
+					filteredResults = append(filteredResults, result)
+				}
+			}
+		}
+		if len(filteredResults) == 0 {
+			fmt.Println("No datastores found.")
+			return nil
+		}
+
+		dsTable := dataStoreTable(filteredResults)
+		// TODO - print with tea
+		fmt.Println("Datastore(s) List")
+		fmt.Println(dsTable.View())
+
 		return nil
 	}
 }
@@ -77,7 +140,7 @@ func dsListRun() RunE {
 func NewDatastoreCmd() *cobra.Command {
 	datastoreCmd := &cobra.Command{
 		Use:     "datastore",
-		Short:   "The datastore subcommand helps manage your Aptible datastores.",
+		Short:   "the datastore subcommand helps manage your Aptible datastores.",
 		Long:    `The datastore subcommand helps manage your Aptible datastores.`,
 		Aliases: []string{"database", "ds", "db"},
 	}
@@ -93,9 +156,10 @@ func NewDatastoreCmd() *cobra.Command {
 
 	dsDestroyCmd := &cobra.Command{
 		Use:     "destroy",
-		Short:   "permentantly remove the datastore.",
-		Long:    `The datastore destroy command will permentantly remove the datastore.`,
+		Short:   "permanently remove the datastore.",
+		Long:    `The datastore destroy command will permanently remove the datastore.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
+		Args:    cobra.MinimumNArgs(1),
 		RunE:    dsDestroyRun(),
 	}
 

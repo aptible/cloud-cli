@@ -6,27 +6,40 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/aptible/cloud-cli/proto"
-
-	client "github.com/aptible/cloud-api-clients/clients/go"
+	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
 )
 
-type Client struct {
-	ApiClient client.APIClient
-	Ctx       context.Context
-	Debug     bool
+// client - internal cloudapiclient struct used only for this service with some common configuration
+type client struct {
+	ctx context.Context
+
+	apiClient *cloudapiclient.APIClient
+	debug     bool
+	token     string
 }
 
-func NewClient(ctx context.Context, apiClient *client.APIClient, debug bool) proto.CloudClient {
-	return &Client{
-		ApiClient: *apiClient,
-		Ctx:       ctx,
-		Debug:     debug,
+// NewClient - generate a new cloud api cloud_api_client
+func NewClient(debug bool, host string, token string) CloudClient {
+	config := cloudapiclient.NewConfiguration()
+	config.Host = host
+	config.Scheme = "https"
+
+	apiClient := cloudapiclient.NewAPIClient(config)
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, cloudapiclient.ContextAccessToken, token)
+
+	return &client{
+		ctx:       ctx,
+		apiClient: apiClient,
+
+		debug: debug,
+		token: token,
 	}
 }
 
-func (c *Client) PrintResponse(r *http.Response) error {
-	if !c.Debug {
+func (c *client) PrintResponse(r *http.Response) error {
+	if !c.debug {
 		return nil
 	}
 
@@ -54,48 +67,55 @@ func (c *Client) PrintResponse(r *http.Response) error {
 	return nil
 }
 
-func (c *Client) ListEnvironments(orgID string) ([]client.EnvironmentOutput, error) {
-	request := c.ApiClient.EnvironmentsApi.GetEnvironmentsApiV1OrganizationsOrganizationIdEnvironmentsGet(c.Ctx, orgID)
+func (c *client) ListEnvironments(orgId string) ([]cloudapiclient.EnvironmentOutput, error) {
+	request := c.apiClient.EnvironmentsApi.GetEnvironmentsApiV1OrganizationsOrganizationIdEnvironmentsGet(c.ctx, orgId)
 	env, r, err := request.Execute()
 	c.PrintResponse(r)
 	return env, err
 }
 
-func (c *Client) CreateEnvironment(orgID string, params client.EnvironmentInput) (*client.EnvironmentOutput, error) {
-	request := c.ApiClient.EnvironmentsApi.CreateEnvironmentApiV1OrganizationsOrganizationIdEnvironmentsPost(c.Ctx, orgID).EnvironmentInput(params)
+func (c *client) CreateEnvironment(orgId string, params cloudapiclient.EnvironmentInput) (*cloudapiclient.EnvironmentOutput, error) {
+	request := c.apiClient.EnvironmentsApi.CreateEnvironmentApiV1OrganizationsOrganizationIdEnvironmentsPost(c.ctx, orgId).EnvironmentInput(params)
 	env, r, err := request.Execute()
 	c.PrintResponse(r)
 	return env, err
 }
 
-func (c *Client) DestroyEnvironment(orgID string, envID string) error {
-	_, r, err := c.ApiClient.EnvironmentsApi.DeleteEnvironmentByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdDelete(c.Ctx, envID, orgID).Execute()
+func (c *client) DestroyEnvironment(orgId string, envId string) error {
+	_, r, err := c.apiClient.EnvironmentsApi.DeleteEnvironmentByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdDelete(c.ctx, envId, orgId).Execute()
 	c.PrintResponse(r)
 	return err
 }
 
-func (c *Client) CreateOrg(orgID string, params client.OrganizationInput) (*client.OrganizationOutput, error) {
-	request := c.ApiClient.OrganizationsApi.PutOrganizationApiV1OrganizationsOrganizationIdPut(c.Ctx, orgID).OrganizationInput(params)
+func (c *client) CreateOrg(orgId string, params cloudapiclient.OrganizationInput) (*cloudapiclient.OrganizationOutput, error) {
+	request := c.apiClient.OrganizationsApi.PutOrganizationApiV1OrganizationsOrganizationIdPut(c.ctx, orgId).OrganizationInput(params)
 	org, r, err := request.Execute()
 	c.PrintResponse(r)
 	return org, err
 }
 
-func (c *Client) FindOrg(orgID string) (*client.OrganizationOutput, error) {
-	org, r, err := c.ApiClient.OrganizationsApi.GetOrganizationByIdApiV1OrganizationsOrganizationIdGet(c.Ctx, orgID).Execute()
+func (c *client) FindOrg(orgId string) (*cloudapiclient.OrganizationOutput, error) {
+	org, r, err := c.apiClient.OrganizationsApi.GetOrganizationByIdApiV1OrganizationsOrganizationIdGet(c.ctx, orgId).Execute()
 	c.PrintResponse(r)
 	return org, err
 }
 
-func (c *Client) CreateAsset(orgID string, envID string, params client.AssetInput) (*client.AssetOutput, error) {
-	request := c.ApiClient.AssetsApi.CreateAssetApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsPost(c.Ctx, envID, orgID).AssetInput(params)
+func (c *client) CreateAsset(orgId string, envId string, params cloudapiclient.AssetInput) (*cloudapiclient.AssetOutput, error) {
+	request := c.apiClient.AssetsApi.CreateAssetApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsPost(c.ctx, envId, orgId).AssetInput(params)
 	asset, r, err := request.Execute()
 	c.PrintResponse(r)
 	return asset, err
 }
 
-func (c *Client) ListOrgs() ([]client.OrganizationOutput, error) {
-	request := c.ApiClient.OrganizationsApi.GetOrganizationsApiV1OrganizationsGet(c.Ctx)
+func (c *client) ListAssets(orgId string, envId string) ([]cloudapiclient.AssetOutput, error) {
+	request := c.apiClient.AssetsApi.GetAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsGet(c.ctx, envId, orgId)
+	assets, r, err := request.Execute()
+	c.PrintResponse(r)
+	return assets, err
+}
+
+func (c *client) ListOrgs() ([]cloudapiclient.OrganizationOutput, error) {
+	request := c.apiClient.OrganizationsApi.GetOrganizationsApiV1OrganizationsGet(c.ctx)
 	orgs, r, err := request.Execute()
 	c.PrintResponse(r)
 	return orgs, err

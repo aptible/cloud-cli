@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/evertras/bubble-table/table"
 
 	apiclient "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/aptible/cloud-cli/ui/fetch"
@@ -9,10 +10,36 @@ import (
 	"github.com/spf13/viper"
 )
 
-func envCreateRun() RunE {
+// environmentsTable - prints out a table of environments
+func environmentsTable(orgOutput interface{}) table.Model {
+	rows := make([]table.Row, 0)
+
+	switch data := orgOutput.(type) {
+	case []apiclient.EnvironmentOutput:
+		for _, org := range data {
+			rows = append(rows, table.NewRow(table.RowData{
+				"id":   org.Id,
+				"name": org.Name,
+			}))
+		}
+	case apiclient.EnvironmentOutput:
+		rows = append(rows, table.NewRow(table.RowData{
+			"id":   data.Id,
+			"name": data.Name,
+		}))
+	}
+
+	return table.New([]table.Column{
+		table.NewColumn("id", "Environment Id", 40),
+		table.NewColumn("name", "Environment Name", 40),
+	}).WithRows(rows)
+}
+
+// envCreateRun - create an environment
+func envCreateRun() CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
-		orgID := config.Vconfig.GetString("org")
+		orgId := config.Vconfig.GetString("org")
 		desc := ""
 		params := apiclient.EnvironmentInput{
 			Name:        args[0],
@@ -20,59 +47,70 @@ func envCreateRun() RunE {
 			Data:        map[string]interface{}{},
 		}
 
-		model := fetch.NewModel("creating environment", func() (interface{}, error) {
-			return config.Cc.CreateEnvironment(orgID, params)
+		progressModel := fetch.NewModel("creating environment", func() (interface{}, error) {
+			return config.Cc.CreateEnvironment(orgId, params)
 		})
 
-		fetchModel, err := fetch.FetchWithOutput(model)
+		result, err := fetch.FetchWithOutput(progressModel)
 		if err != nil {
 			return err
 		}
-		env := fetchModel.Result.(apiclient.EnvironmentOutput)
 
-		fmt.Printf("New environment ID: %s\n", env.Id)
+		envTable := environmentsTable(result.Result.(apiclient.EnvironmentOutput))
+		// TODO - print with tea
+		fmt.Println("Created Environment(s)")
+		fmt.Println(envTable.View())
 		return nil
 	}
 }
 
-func envDestroyRun() RunE {
+// envDestroyRun - destroy an environment
+func envDestroyRun() CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
-		orgID := config.Vconfig.GetString("org")
-		envID := args[0]
+		orgId := config.Vconfig.GetString("org")
+		envId := args[0]
 
 		model := fetch.NewModel("destroying environment", func() (interface{}, error) {
-			err := config.Cc.DestroyEnvironment(orgID, envID)
+			err := config.Cc.DestroyEnvironment(orgId, envId)
 			return nil, err
 		})
 
 		err := fetch.FetchAny(model)
+
+		// does not print anything, no table to print here
+		fmt.Println(fmt.Sprintf("Destroyed environment: %s", envId))
 		return err
 	}
 }
 
-func envListRun() RunE {
+// envListRun - lists all environments for an org id
+func envListRun() CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
-		orgID := config.Vconfig.GetString("org")
-
+		orgId := config.Vconfig.GetString("org")
 		model := fetch.NewModel("fetching environments", func() (interface{}, error) {
-			return config.Cc.ListEnvironments(orgID)
+			return config.Cc.ListEnvironments(orgId)
 		})
 		result, err := fetch.FetchWithOutput(model)
 		if err != nil {
 			return err
 		}
-
-		envs := result.Result.([]apiclient.EnvironmentOutput)
-
-		for _, env := range envs {
-			fmt.Printf("%s %s\n", env.Id, env.Name)
+		if result == nil {
+			fmt.Println("No environments found.")
+			return nil
 		}
+
+		envTable := environmentsTable(result.Result.([]apiclient.EnvironmentOutput))
+		// TODO - print with tea
+		fmt.Println("Environment(s) List")
+		fmt.Println(envTable.View())
+
 		return nil
 	}
 }
 
+// NewEnvCmd - generates a cobra command target for environments
 func NewEnvCmd() *cobra.Command {
 	envCmd := &cobra.Command{
 		Use:     "environment",
@@ -93,7 +131,7 @@ func NewEnvCmd() *cobra.Command {
 	envDestroyCmd := &cobra.Command{
 		Use:     "destroy",
 		Short:   "permentantly remove the environment.",
-		Long:    `The datastore destroy command will permentantly remove the environment.`,
+		Long:    `The datastore destroy command will permanently remove the environment.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
 		Args:    cobra.MinimumNArgs(1),
 		RunE:    envDestroyRun(),
