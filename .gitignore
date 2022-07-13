@@ -1,0 +1,10 @@
+*.swp
+*.log
+*.bak
+.DS_Store
+build/*
+!build/.gitkeep
+.envrc
+.env
+
+dist/
