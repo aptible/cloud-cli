@@ -100,19 +100,18 @@ func dsCreateRun() common.CobraRunE {
 		if err != nil {
 			return err
 		}
-		res := result.Result.(*cloudapiclient.AssetOutput)
+		datastoreTable := vpcTable(result.Result.(*cloudapiclient.AssetOutput))
+		// TODO - print with tea
+		fmt.Println("Datastore(s) Created:")
+		fmt.Println(datastoreTable.View())
 
-		fmt.Printf("Result: %+v\n", res)
 		return nil
 	}
 }
 
 // dsDestroyRun - destroy datastore
 func dsDestroyRun() common.CobraRunE {
-	return func(cmd *cobra.Command, args []string) error {
-		fmt.Println(fmt.Sprintf("Destroying datastore id: %s", args[0]))
-		return destroyAsset(cmd, args)
-	}
+	return destroyAsset()
 }
 
 // dsListRun - list datastores

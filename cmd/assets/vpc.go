@@ -48,8 +48,12 @@ func vpcCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
-		envId := args[0]
-		name := args[1]
+
+		if env == "" {
+			return fmt.Errorf("must provide env")
+		}
+
+		name := args[0]
 
 		vars := map[string]interface{}{
 			"name": name,
@@ -62,7 +66,7 @@ func vpcCreateRun() common.CobraRunE {
 
 		msg := fmt.Sprintf("creating vpc %s (v%s)", engine, engineVersion)
 		model := fetch.NewModel(msg, func() (interface{}, int, error) {
-			return config.Cc.CreateAsset(orgId, envId, params)
+			return config.Cc.CreateAsset(orgId, env, params)
 		})
 
 		result, err := fetch.WithOutput(model)
@@ -71,7 +75,7 @@ func vpcCreateRun() common.CobraRunE {
 		}
 		vpcTable := vpcTable(result.Result.(*cloudapiclient.AssetOutput))
 		// TODO - print with tea
-		fmt.Println("VPC(s) List")
+		fmt.Println("VPC(s) Created:")
 		fmt.Println(vpcTable.View())
 
 		return nil
@@ -80,10 +84,7 @@ func vpcCreateRun() common.CobraRunE {
 
 // dsDestroyRun - destroy datastore
 func vpcDestroyRun() common.CobraRunE {
-	return func(cmd *cobra.Command, args []string) error {
-		fmt.Println(fmt.Sprintf("Destroying vpc id: %s", args[0]))
-		return destroyAsset(cmd, args)
-	}
+	return destroyAsset()
 }
 
 // vpcListRun - list vpcs
@@ -143,6 +144,7 @@ func NewVPCCmd() *cobra.Command {
 		Short:   "provision a new vpc.",
 		Long:    `The vpc create command will provision a new vpc.`,
 		Aliases: []string{"c", "deploy"},
+		Args:    cobra.ExactArgs(1),
 		RunE:    vpcCreateRun(),
 	}
 
@@ -151,7 +153,7 @@ func NewVPCCmd() *cobra.Command {
 		Short:   "permanently remove the vpc.",
 		Long:    `The vpc destroy command will permanently remove the vpc.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
-		Args:    cobra.MinimumNArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE:    vpcDestroyRun(),
 	}
 
@@ -162,6 +164,8 @@ func NewVPCCmd() *cobra.Command {
 		Aliases: []string{"ls"},
 		RunE:    vpcListRun(),
 	}
+
+	vpcCreateCmd.Flags().StringVar(&env, "env", "", "delete vpc within an environment")
 
 	vpcDestroyCmd.Flags().StringVar(&env, "env", "", "delete vpc within an environment")
 
