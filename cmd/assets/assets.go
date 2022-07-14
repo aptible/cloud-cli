@@ -76,15 +76,16 @@ func destroyAsset() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
+		envId := config.Vconfig.GetString("env")
 		assetId := args[0]
 
-		if env == "" {
+		if envId == "" {
 			return fmt.Errorf("must provide env")
 		}
 
 		msg := fmt.Sprintf("destroying asset %s (v%s)", engine, engineVersion)
 		model := fetch.NewModel(msg, func() (interface{}, int, error) {
-			status, err := config.Cc.DestroyAsset(orgId, env, assetId)
+			status, err := config.Cc.DestroyAsset(orgId, envId, assetId)
 			return nil, status, err
 		})
 		_, err := fetch.WithOutput(model)
@@ -148,10 +149,11 @@ func assetsListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
+		envId := config.Vconfig.GetString("env")
 
-		msg := fmt.Sprintf("getting datastores with env id: %s and org id: %s", env, orgId)
+		msg := fmt.Sprintf("getting datastores with env id: %s and org id: %s", envId, orgId)
 		model := fetch.NewModel(msg, func() (interface{}, int, error) {
-			return config.Cc.ListAssets(orgId, env)
+			return config.Cc.ListAssets(orgId, envId)
 		})
 
 		rawResult, err := fetch.WithOutput(model)
@@ -215,11 +217,6 @@ func NewAssetCmd() *cobra.Command {
 	}
 
 	assetCreateCmd.Flags().StringVarP(&vpcName, "vpc-name", "", "", "asset variables map")
-	assetCreateCmd.Flags().StringVar(&env, "env", "", "delete asset within an environment")
-
-	assetDestroyCmd.Flags().StringVar(&env, "env", "", "delete asset within an environment")
-
-	assetListCmd.Flags().StringVar(&env, "env", "", "list assets within an environment")
 
 	assetCmd.AddCommand(assetCreateCmd)
 	assetCmd.AddCommand(assetDestroyCmd)

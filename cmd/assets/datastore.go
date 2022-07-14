@@ -17,7 +17,6 @@ import (
 var (
 	engine        string
 	engineVersion string
-	env           string
 	name          string
 	vpcName       string
 )
@@ -62,8 +61,9 @@ func dsCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
+		envId := config.Vconfig.GetString("env")
 
-		if env == "" {
+		if envId == "" {
 			return fmt.Errorf("must provide env")
 		}
 		if engine == "" {
@@ -93,7 +93,7 @@ func dsCreateRun() common.CobraRunE {
 
 		msg := fmt.Sprintf("creating datastore %s (v%s)", engine, engineVersion)
 		model := fetch.NewModel(msg, func() (interface{}, int, error) {
-			return config.Cc.CreateAsset(orgId, env, params)
+			return config.Cc.CreateAsset(orgId, envId, params)
 		})
 
 		result, err := fetch.WithOutput(model)
@@ -119,10 +119,11 @@ func dsListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
+		envId := config.Vconfig.GetString("env")
 
-		msg := fmt.Sprintf("getting datastores with env id: %s and org id: %s", env, orgId)
+		msg := fmt.Sprintf("getting datastores with env id: %s and org id: %s", envId, orgId)
 		model := fetch.NewModel(msg, func() (interface{}, int, error) {
-			return config.Cc.ListAssets(orgId, env)
+			return config.Cc.ListAssets(orgId, envId)
 		})
 
 		rawResult, err := fetch.WithOutput(model)
@@ -195,13 +196,8 @@ func NewDatastoreCmd() *cobra.Command {
 
 	dsCreateCmd.Flags().StringVarP(&engine, "engine", "e", "", "the datastore engine, e.g. rds/postgres, rds/mysql, etc.")
 	dsCreateCmd.Flags().StringVarP(&engineVersion, "engine-version", "v", "", "the engine version, e.g. 14.2")
-	dsCreateCmd.Flags().StringVar(&env, "env", "", "the environment id to deploy to")
 	dsCreateCmd.Flags().StringVar(&name, "name", "", "the name to assign to rds")
 	dsCreateCmd.Flags().StringVarP(&vpcName, "vpc-name", "", "", "the vpc to attach rds to")
-
-	dsDestroyCmd.Flags().StringVar(&env, "env", "", "delete datastore within an environment")
-
-	dsListCmd.Flags().StringVar(&env, "env", "", "list datastores within an environment")
 
 	datastoreCmd.AddCommand(dsCreateCmd)
 	datastoreCmd.AddCommand(dsDestroyCmd)

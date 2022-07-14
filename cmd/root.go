@@ -17,7 +17,8 @@ var (
 	token      string
 	authDomain string
 	apiDomain  string
-	orgId      string
+	org        string
+	env        string
 	debug      bool
 )
 
@@ -46,7 +47,8 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "jwt token")
 	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "auth.aptible.com", "auth domain")
 	rootCmd.PersistentFlags().StringVar(&apiDomain, "api-domain", "cloud-api.aptible.com", "api domain")
-	rootCmd.PersistentFlags().StringVar(&orgId, "org", "", "organization id")
+	rootCmd.PersistentFlags().StringVar(&org, "org", "", "organization id")
+	rootCmd.PersistentFlags().StringVar(&env, "env", "", "environment id")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "debug logging")
 
 	errs := []error{
@@ -54,6 +56,7 @@ func NewRootCmd() *cobra.Command {
 		viper.BindPFlag("auth-domain", rootCmd.PersistentFlags().Lookup("auth-domain")),
 		viper.BindPFlag("api-domain", rootCmd.PersistentFlags().Lookup("api-domain")),
 		viper.BindPFlag("org", rootCmd.PersistentFlags().Lookup("org")),
+		viper.BindPFlag("env", rootCmd.PersistentFlags().Lookup("env")),
 		viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")),
 	}
 
