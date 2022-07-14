@@ -1,14 +1,16 @@
-package cmd
+package assets
 
 import (
 	"fmt"
+	"github.com/aptible/cloud-cli/internal/common"
 	"strings"
 
-	apiclient "github.com/aptible/cloud-api-clients/clients/go"
-	"github.com/aptible/cloud-cli/ui/fetch"
+	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/evertras/bubble-table/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
 
 var (
@@ -24,14 +26,14 @@ func dataStoreTable(orgOutput interface{}) table.Model {
 	rows := make([]table.Row, 0)
 
 	switch data := orgOutput.(type) {
-	case []apiclient.AssetOutput:
+	case []cloudapiclient.AssetOutput:
 		for _, asset := range data {
 			rows = append(rows, table.NewRow(table.RowData{
 				"id":     asset.Id,
 				"status": asset.Status,
 			}))
 		}
-	case apiclient.AssetOutput:
+	case cloudapiclient.AssetOutput:
 		rows = append(rows, table.NewRow(table.RowData{
 			"id":     data.Id,
 			"status": data.Status,
@@ -45,9 +47,9 @@ func dataStoreTable(orgOutput interface{}) table.Model {
 }
 
 // dsCreateRun - create a datastore
-func dsCreateRun() CobraRunE {
+func dsCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
+		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
 
 		if env == "" {
@@ -72,14 +74,14 @@ func dsCreateRun() CobraRunE {
 			"engine_version": engineVersion,
 			"vpc_name":       vpcName,
 		}
-		params := apiclient.AssetInput{
+		params := cloudapiclient.AssetInput{
 			Asset:           "aws__rds__latest",
 			AssetVersion:    "latest",
 			AssetParameters: vars,
 		}
 
 		msg := fmt.Sprintf("creating datastore %s (v%s)", engine, engineVersion)
-		model := fetch.NewModel(msg, func() (interface{}, error) {
+		model := fetch.NewModel(msg, func() (interface{}, int, error) {
 			return config.Cc.CreateAsset(orgId, env, params)
 		})
 
@@ -87,7 +89,7 @@ func dsCreateRun() CobraRunE {
 		if err != nil {
 			return err
 		}
-		res := result.Result.(*apiclient.AssetOutput)
+		res := result.Result.(*cloudapiclient.AssetOutput)
 
 		fmt.Printf("Result: %+v\n", res)
 		return nil
@@ -95,7 +97,7 @@ func dsCreateRun() CobraRunE {
 }
 
 // dsDestroyRun - destroy datastore
-func dsDestroyRun() CobraRunE {
+func dsDestroyRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		fmt.Println(fmt.Sprintf("Destroying datastore id: %s", args[0]))
 		return destroyAsset(cmd, args)
@@ -103,13 +105,13 @@ func dsDestroyRun() CobraRunE {
 }
 
 // dsListRun - list datastores
-func dsListRun() CobraRunE {
+func dsListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
+		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
 
 		msg := fmt.Sprintf("getting datastores with env id: %s and org id: %s", env, orgId)
-		model := fetch.NewModel(msg, func() (interface{}, error) {
+		model := fetch.NewModel(msg, func() (interface{}, int, error) {
 			return config.Cc.ListAssets(orgId, env)
 		})
 
@@ -118,12 +120,14 @@ func dsListRun() CobraRunE {
 			return err
 		}
 		if rawResult == nil {
+			// TODO - print with tea
 			fmt.Println("No datastores found.")
 			return nil
 		}
+
 		dsAssetTypes := []string{"rds"}
-		unfilteredResults := rawResult.Result.([]apiclient.AssetOutput)
-		filteredResults := make([]apiclient.AssetOutput, 0)
+		unfilteredResults := rawResult.Result.([]cloudapiclient.AssetOutput)
+		filteredResults := make([]cloudapiclient.AssetOutput, 0)
 		for _, result := range unfilteredResults {
 			for _, acceptedDsType := range dsAssetTypes {
 				if strings.Contains(result.Asset, acceptedDsType) {
@@ -132,6 +136,7 @@ func dsListRun() CobraRunE {
 			}
 		}
 		if len(filteredResults) == 0 {
+			// TODO - print with tea
 			fmt.Println("No datastores found.")
 			return nil
 		}

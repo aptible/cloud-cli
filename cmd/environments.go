@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/evertras/bubble-table/table"
 
-	apiclient "github.com/aptible/cloud-api-clients/clients/go"
-	"github.com/aptible/cloud-cli/ui/fetch"
+	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
+	"github.com/evertras/bubble-table/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/aptible/cloud-cli/internal/common"
+	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
 
 // environmentsTable - prints out a table of environments
@@ -15,14 +17,14 @@ func environmentsTable(orgOutput interface{}) table.Model {
 	rows := make([]table.Row, 0)
 
 	switch data := orgOutput.(type) {
-	case []apiclient.EnvironmentOutput:
+	case []cloudapiclient.EnvironmentOutput:
 		for _, org := range data {
 			rows = append(rows, table.NewRow(table.RowData{
 				"id":   org.Id,
 				"name": org.Name,
 			}))
 		}
-	case apiclient.EnvironmentOutput:
+	case cloudapiclient.EnvironmentOutput:
 		rows = append(rows, table.NewRow(table.RowData{
 			"id":   data.Id,
 			"name": data.Name,
@@ -36,18 +38,18 @@ func environmentsTable(orgOutput interface{}) table.Model {
 }
 
 // envCreateRun - create an environment
-func envCreateRun() CobraRunE {
+func envCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
+		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
 		desc := ""
-		params := apiclient.EnvironmentInput{
+		params := cloudapiclient.EnvironmentInput{
 			Name:        args[0],
 			Description: &desc,
 			Data:        map[string]interface{}{},
 		}
 
-		progressModel := fetch.NewModel("creating environment", func() (interface{}, error) {
+		progressModel := fetch.NewModel("creating environment", func() (interface{}, int, error) {
 			return config.Cc.CreateEnvironment(orgId, params)
 		})
 
@@ -56,7 +58,7 @@ func envCreateRun() CobraRunE {
 			return err
 		}
 
-		envTable := environmentsTable(result.Result.(apiclient.EnvironmentOutput))
+		envTable := environmentsTable(result.Result.(cloudapiclient.EnvironmentOutput))
 		// TODO - print with tea
 		fmt.Println("Created Environment(s)")
 		fmt.Println(envTable.View())
@@ -65,15 +67,15 @@ func envCreateRun() CobraRunE {
 }
 
 // envDestroyRun - destroy an environment
-func envDestroyRun() CobraRunE {
+func envDestroyRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
+		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
 		envId := args[0]
 
-		model := fetch.NewModel("destroying environment", func() (interface{}, error) {
-			err := config.Cc.DestroyEnvironment(orgId, envId)
-			return nil, err
+		model := fetch.NewModel("destroying environment", func() (interface{}, int, error) {
+			status, err := config.Cc.DestroyEnvironment(orgId, envId)
+			return nil, status, err
 		})
 
 		err := fetch.FetchAny(model)
@@ -85,11 +87,11 @@ func envDestroyRun() CobraRunE {
 }
 
 // envListRun - lists all environments for an org id
-func envListRun() CobraRunE {
+func envListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
+		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
-		model := fetch.NewModel("fetching environments", func() (interface{}, error) {
+		model := fetch.NewModel("fetching environments", func() (interface{}, int, error) {
 			return config.Cc.ListEnvironments(orgId)
 		})
 		result, err := fetch.FetchWithOutput(model)
@@ -97,11 +99,12 @@ func envListRun() CobraRunE {
 			return err
 		}
 		if result == nil {
+			// TODO - print with tea
 			fmt.Println("No environments found.")
 			return nil
 		}
 
-		envTable := environmentsTable(result.Result.([]apiclient.EnvironmentOutput))
+		envTable := environmentsTable(result.Result.([]cloudapiclient.EnvironmentOutput))
 		// TODO - print with tea
 		fmt.Println("Environment(s) List")
 		fmt.Println(envTable.View())

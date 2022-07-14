@@ -1,13 +1,17 @@
 package fetch
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
+	"os"
 	"time"
 
-	"github.com/aptible/cloud-cli/ui/common"
-	"github.com/aptible/cloud-cli/ui/loader"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/aptible/cloud-cli/internal/ui/common"
+	"github.com/aptible/cloud-cli/internal/ui/loader"
 )
 
 type state int
@@ -33,7 +37,7 @@ type Model struct {
 	styles  common.Styles
 }
 
-type Fx func() (interface{}, error)
+type Fx func() (dataModel interface{}, statusCode int, error error)
 
 func NewModel(text string, io Fx) Model {
 	s := loader.NewModel(text)
@@ -42,9 +46,13 @@ func NewModel(text string, io Fx) Model {
 
 func create(fx Fx) tea.Cmd {
 	return func() tea.Msg {
-		res, err := fx()
+		res, statusCode, err := fx()
 		if err != nil {
 			return err
+		}
+
+		if statusCode >= http.StatusBadRequest {
+			return errors.New("http error status raised")
 		}
 
 		return FetchSuccess{Result: res}
@@ -86,7 +94,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case errMsg:
 		m.Err = msg
-		fmt.Println(msg)
+		fmt.Println(fmt.Sprintf("Error encountered: %s", msg))
 		return m, tea.Quit
 
 	default:
@@ -124,5 +132,10 @@ func FetchWithOutput(model tea.Model) (*Model, error) {
 	}
 
 	n := m.(Model)
+	if n.Err != nil {
+		n.Update(n.Err) // this also quites the program
+		os.Exit(1)
+	}
+
 	return &n, nil
 }

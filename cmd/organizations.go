@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/aptible/cloud-cli/internal/common"
 
-	apiclient "github.com/aptible/cloud-api-clients/clients/go"
-	"github.com/aptible/cloud-cli/ui/fetch"
+	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/evertras/bubble-table/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
 
 // organizationsTable - prints out a table of organizations
@@ -15,14 +17,14 @@ func organizationsTable(orgOutput interface{}) table.Model {
 	rows := make([]table.Row, 0)
 
 	switch data := orgOutput.(type) {
-	case []apiclient.OrganizationOutput:
+	case []cloudapiclient.OrganizationOutput:
 		for _, org := range data {
 			rows = append(rows, table.NewRow(table.RowData{
 				"id":   org.Id,
 				"name": org.Name,
 			}))
 		}
-	case apiclient.OrganizationOutput:
+	case cloudapiclient.OrganizationOutput:
 		rows = append(rows, table.NewRow(table.RowData{
 			"id":   data.Id,
 			"name": data.Name,
@@ -36,21 +38,21 @@ func organizationsTable(orgOutput interface{}) table.Model {
 }
 
 // organizationCreateRun - create an organization
-func organizationCreateRun() CobraRunE {
+func organizationCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
+		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
 
 		output := make(map[string]interface{})
 		var ou string
-		params := apiclient.OrganizationInput{
+		params := cloudapiclient.OrganizationInput{
 			Name:           args[0],
 			BaaStatus:      "pending",
 			AwsOu:          &ou,
 			ContactDetails: output,
 		}
 
-		progressModel := fetch.NewModel("creating organization", func() (interface{}, error) {
+		progressModel := fetch.NewModel("creating organization", func() (interface{}, int, error) {
 			return config.Cc.CreateOrg(orgId, params)
 		})
 		result, err := fetch.FetchWithOutput(progressModel)
@@ -58,7 +60,7 @@ func organizationCreateRun() CobraRunE {
 			return err
 		}
 
-		orgsTable := organizationsTable(result.Result.(apiclient.OrganizationOutput))
+		orgsTable := organizationsTable(result.Result.(cloudapiclient.OrganizationOutput))
 		// TODO - print with tea
 		fmt.Println("Created Organization(s)")
 		fmt.Println(orgsTable.View())
@@ -68,10 +70,10 @@ func organizationCreateRun() CobraRunE {
 }
 
 // orgListRun - lists all organizations
-func orgListRun() CobraRunE {
+func orgListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
-		progressModel := fetch.NewModel("fetching organizations", func() (interface{}, error) {
+		config := common.NewCloudConfig(viper.GetViper())
+		progressModel := fetch.NewModel("fetching organizations", func() (interface{}, int, error) {
 			return config.Cc.ListOrgs()
 		})
 		result, err := fetch.FetchWithOutput(progressModel)
@@ -83,7 +85,7 @@ func orgListRun() CobraRunE {
 			return nil
 		}
 
-		orgsTable := organizationsTable(result.Result.([]apiclient.OrganizationOutput))
+		orgsTable := organizationsTable(result.Result.([]cloudapiclient.OrganizationOutput))
 		// TODO - print with tea
 		fmt.Println("Organization(s) List")
 		fmt.Println(orgsTable.View())

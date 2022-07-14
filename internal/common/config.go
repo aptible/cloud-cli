@@ -1,4 +1,4 @@
-package cmd
+package common
 
 import (
 	"context"
@@ -7,14 +7,15 @@ import (
 	"os"
 	"path"
 
-	client "github.com/aptible/cloud-cli/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/aptible/cloud-cli/internal/client"
 )
 
 /*
 CloudConfig
-Core config for the Cloud API
+Core common for the Cloud API
 */
 type CloudConfig struct {
 	Vconfig *viper.Viper
@@ -25,7 +26,8 @@ type CloudConfig struct {
 // CobraRunE - alias for Cobra's RunE
 type CobraRunE func(cmd *cobra.Command, args []string) error
 
-func findToken(home string, domain string) (string, error) {
+// FindToken - tries to find an aptible token in various paths
+func FindToken(home string, domain string) (string, error) {
 	if os.Getenv("APTIBLE_TOKEN") != "" {
 		// TODO - find a better way to do this
 		return os.Getenv("APTIBLE_TOKEN"), nil
@@ -71,16 +73,16 @@ func configCreateRun() CobraRunE {
 
 func NewConfigCmd() *cobra.Command {
 	configCmd := &cobra.Command{
-		Use:     "config",
-		Short:   "The config subcommand has assorted config utils associated with the CLI.",
-		Long:    "The config subcommand has assorted config utils associated with the CLI.",
-		Aliases: []string{"config", "c"},
+		Use:     "common",
+		Short:   "The common subcommand has assorted common utils associated with the CLI.",
+		Long:    "The common subcommand has assorted common utils associated with the CLI.",
+		Aliases: []string{"common", "c"},
 	}
 
 	configCreateCmd := &cobra.Command{
-		Use:     "create config",
-		Short:   "provision a fresh config file.",
-		Long:    "provision a fresh config file.",
+		Use:     "create common",
+		Short:   "provision a fresh common file.",
+		Long:    "provision a fresh common file.",
 		Aliases: []string{"c"},
 		Args:    cobra.MinimumNArgs(0),
 		RunE:    configCreateRun(),

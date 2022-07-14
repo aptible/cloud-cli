@@ -1,15 +1,16 @@
-package cmd
+package assets
 
 import (
 	"fmt"
-
-	"github.com/aptible/cloud-cli/ui/fetch"
+	config2 "github.com/aptible/cloud-cli/internal/common"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
 
 func destroyAsset(_ *cobra.Command, args []string) error {
-	config := NewCloudConfig(viper.GetViper())
+	config := config2.NewCloudConfig(viper.GetViper())
 	orgId := config.Vconfig.GetString("org")
 	assetId := args[0]
 
@@ -18,8 +19,9 @@ func destroyAsset(_ *cobra.Command, args []string) error {
 	}
 
 	msg := fmt.Sprintf("destroying asset %s (v%s)", engine, engineVersion)
-	model := fetch.NewModel(msg, func() (interface{}, error) {
-		return nil, config.Cc.DestroyAsset(orgId, env, assetId)
+	model := fetch.NewModel(msg, func() (interface{}, int, error) {
+		status, err := config.Cc.DestroyAsset(orgId, env, assetId)
+		return nil, status, err
 	})
 	_, err := fetch.FetchWithOutput(model)
 	if err != nil {

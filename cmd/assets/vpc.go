@@ -1,14 +1,16 @@
-package cmd
+package assets
 
 import (
 	"fmt"
 	"strings"
 
-	apiclient "github.com/aptible/cloud-api-clients/clients/go"
-	"github.com/aptible/cloud-cli/ui/fetch"
+	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/evertras/bubble-table/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/aptible/cloud-cli/internal/common"
+	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
 
 // dataStoreTable - prints out a table of datastores
@@ -16,14 +18,14 @@ func vpcTable(orgOutput interface{}) table.Model {
 	rows := make([]table.Row, 0)
 
 	switch data := orgOutput.(type) {
-	case []apiclient.AssetOutput:
+	case []cloudapiclient.AssetOutput:
 		for _, asset := range data {
 			rows = append(rows, table.NewRow(table.RowData{
 				"id":     asset.Id,
 				"status": asset.Status,
 			}))
 		}
-	case *apiclient.AssetOutput:
+	case *cloudapiclient.AssetOutput:
 		rows = append(rows, table.NewRow(table.RowData{
 			"id":     data.Id,
 			"status": data.Status,
@@ -37,9 +39,9 @@ func vpcTable(orgOutput interface{}) table.Model {
 }
 
 // dsCreateRun - create a datastore
-func vpcCreateRun() CobraRunE {
+func vpcCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
+		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
 		envId := args[0]
 		name := args[1]
@@ -47,14 +49,14 @@ func vpcCreateRun() CobraRunE {
 		vars := map[string]interface{}{
 			"name": name,
 		}
-		params := apiclient.AssetInput{
+		params := cloudapiclient.AssetInput{
 			Asset:           "aws__vpc__latest",
 			AssetVersion:    "latest",
 			AssetParameters: vars,
 		}
 
 		msg := fmt.Sprintf("creating vpc %s (v%s)", engine, engineVersion)
-		model := fetch.NewModel(msg, func() (interface{}, error) {
+		model := fetch.NewModel(msg, func() (interface{}, int, error) {
 			return config.Cc.CreateAsset(orgId, envId, params)
 		})
 
@@ -62,7 +64,7 @@ func vpcCreateRun() CobraRunE {
 		if err != nil {
 			return err
 		}
-		vpcTable := vpcTable(result.Result.(*apiclient.AssetOutput))
+		vpcTable := vpcTable(result.Result.(*cloudapiclient.AssetOutput))
 		// TODO - print with tea
 		fmt.Println("VPC(s) List")
 		fmt.Println(vpcTable.View())
@@ -72,7 +74,7 @@ func vpcCreateRun() CobraRunE {
 }
 
 // dsDestroyRun - destroy datastore
-func vpcDestroyRun() CobraRunE {
+func vpcDestroyRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		fmt.Println(fmt.Sprintf("Destroying vpc id: %s", args[0]))
 		return destroyAsset(cmd, args)
@@ -80,13 +82,13 @@ func vpcDestroyRun() CobraRunE {
 }
 
 // vpcListRun - list vpcs
-func vpcListRun() CobraRunE {
+func vpcListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
+		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
 
 		msg := fmt.Sprintf("getting vpcs with env id: %s and org id: %s", env, orgId)
-		model := fetch.NewModel(msg, func() (interface{}, error) {
+		model := fetch.NewModel(msg, func() (interface{}, int, error) {
 			return config.Cc.ListAssets(orgId, env)
 		})
 
@@ -95,12 +97,13 @@ func vpcListRun() CobraRunE {
 			return err
 		}
 		if rawResult == nil {
-			fmt.Println("No datastores found.")
+			// TODO - print with tea
+			fmt.Println("No vpcs found.")
 			return nil
 		}
 		dsAssetTypes := []string{"vpc"}
-		unfilteredResults := rawResult.Result.([]apiclient.AssetOutput)
-		filteredResults := make([]apiclient.AssetOutput, 0)
+		unfilteredResults := rawResult.Result.([]cloudapiclient.AssetOutput)
+		filteredResults := make([]cloudapiclient.AssetOutput, 0)
 		for _, result := range unfilteredResults {
 			for _, acceptedDsType := range dsAssetTypes {
 				if strings.Contains(result.Asset, acceptedDsType) {
@@ -127,7 +130,7 @@ func NewVPCCmd() *cobra.Command {
 		Use:     "vpc",
 		Short:   "the vpc subcommand helps manage your Aptible vpcs.",
 		Long:    `The vpc subcommand helps manage your Aptible vpcs.`,
-		Aliases: []string{"database", "v"},
+		Aliases: []string{"v"},
 	}
 
 	vpcCreateCmd := &cobra.Command{
@@ -149,8 +152,8 @@ func NewVPCCmd() *cobra.Command {
 
 	vpcListCmd := &cobra.Command{
 		Use:     "list",
-		Short:   "list all datastores within an organization.",
-		Long:    `The datastore list command will list all datastores within an organization.`,
+		Short:   "list all vpcs within an organization.",
+		Long:    `The vpc list command will list all vpcs within an organization.`,
 		Aliases: []string{"ls"},
 		RunE:    vpcListRun(),
 	}
