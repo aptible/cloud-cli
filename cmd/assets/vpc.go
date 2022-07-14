@@ -48,8 +48,9 @@ func vpcCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
+		envId := config.Vconfig.GetString("env")
 
-		if env == "" {
+		if envId == "" {
 			return fmt.Errorf("must provide env")
 		}
 
@@ -64,9 +65,9 @@ func vpcCreateRun() common.CobraRunE {
 			AssetParameters: vars,
 		}
 
-		msg := fmt.Sprintf("creating vpc %s (v%s)", engine, engineVersion)
+		msg := fmt.Sprintf("creating vpc (%s)", name)
 		model := fetch.NewModel(msg, func() (interface{}, int, error) {
-			return config.Cc.CreateAsset(orgId, env, params)
+			return config.Cc.CreateAsset(orgId, envId, params)
 		})
 
 		result, err := fetch.WithOutput(model)
@@ -92,10 +93,11 @@ func vpcListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
+		envId := config.Vconfig.GetString("env")
 
-		msg := fmt.Sprintf("getting vpcs with env id: %s and org id: %s", env, orgId)
+		msg := fmt.Sprintf("getting vpcs with env id: %s and org id: %s", envId, orgId)
 		model := fetch.NewModel(msg, func() (interface{}, int, error) {
-			return config.Cc.ListAssets(orgId, env)
+			return config.Cc.ListAssets(orgId, envId)
 		})
 
 		rawResult, err := fetch.WithOutput(model)
@@ -164,12 +166,6 @@ func NewVPCCmd() *cobra.Command {
 		Aliases: []string{"ls"},
 		RunE:    vpcListRun(),
 	}
-
-	vpcCreateCmd.Flags().StringVar(&env, "env", "", "delete vpc within an environment")
-
-	vpcDestroyCmd.Flags().StringVar(&env, "env", "", "delete vpc within an environment")
-
-	vpcListCmd.Flags().StringVar(&env, "env", "", "list vpc(s) within an environment")
 
 	vpcCmd.AddCommand(vpcCreateCmd)
 	vpcCmd.AddCommand(vpcDestroyCmd)
