@@ -2,18 +2,18 @@ module github.com/aptible/cloud-cli
 
 go 1.18
 
-// replace github.com/aptible/cloud-api-clients/clients/go => /Users/ericbower/work/cloud-api-clients/clients/go
-
 require (
 	github.com/aptible/cloud-api-clients/clients/go v0.0.0-20220707141259-b416ec2419a6
 	github.com/charmbracelet/bubbles v0.12.0
 	github.com/charmbracelet/bubbletea v0.22.0
 	github.com/charmbracelet/lipgloss v0.5.0
+	github.com/evertras/bubble-table v0.14.4
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 )
 
 require (
+	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

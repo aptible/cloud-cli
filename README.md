@@ -1,3 +1,4 @@
 # cloud-cli
 
-- [slab](https://aptible.slab.com/topics/cli-j3w24z43)
+Aptible `cloud-cli` application that allows interaction with the cloud api.
+

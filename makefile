@@ -1,4 +1,4 @@
-GOPRIVATE?="github.com/aptible/cloud-api-clients"
+GOPRIVATE?="github.com/aptible/*"
 
 init:
 	GOPRIVATE=$(GOPRIVATE) go mod download
@@ -25,7 +25,12 @@ clean:
 .PHONY: clean
 
 lint:
-	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:latest golangci-lint run -E goimports -E godot
+	docker run \
+		--rm \
+		-v $(shell pwd):/app \
+		-w /app \
+		golangci/golangci-lint:v1.46 \
+		golangci-lint run
 .PHONY: lint
 
 test: lint

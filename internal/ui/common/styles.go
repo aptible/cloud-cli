@@ -5,14 +5,16 @@ import (
 )
 
 var (
-	indigo       = lipgloss.AdaptiveColor{Light: "#5A56E0", Dark: "#7571F9"}
-	subtleIndigo = lipgloss.AdaptiveColor{Light: "#7D79F6", Dark: "#514DC1"}
-	cream        = lipgloss.AdaptiveColor{Light: "#FFFDF5", Dark: "#FFFDF5"}
-	yellowGreen  = lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#ECFD65"}
-	fuschia      = lipgloss.AdaptiveColor{Light: "#EE6FF8", Dark: "#EE6FF8"}
-	green        = lipgloss.Color("#04B575")
-	red          = lipgloss.AdaptiveColor{Light: "#FF4672", Dark: "#ED567A"}
-	faintRed     = lipgloss.AdaptiveColor{Light: "#FF6F91", Dark: "#C74665"}
+	// commented unused variables for now
+	//indigo       = lipgloss.AdaptiveColor{Light: "#5A56E0", Dark: "#7571F9"}
+	//subtleIndigo = lipgloss.AdaptiveColor{Light: "#7D79F6", Dark: "#514DC1"}
+	//cream        = lipgloss.AdaptiveColor{Light: "#FFFDF5", Dark: "#FFFDF5"}
+	yellowGreen = lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#ECFD65"}
+	fuschia     = lipgloss.AdaptiveColor{Light: "#EE6FF8", Dark: "#EE6FF8"}
+	green       = lipgloss.Color("#04B575")
+	red         = lipgloss.AdaptiveColor{Light: "#FF4672", Dark: "#ED567A"}
+	white       = lipgloss.Color("#FFFFFF")
+	//faintRed     = lipgloss.AdaptiveColor{Light: "#FF6F91", Dark: "#C74665"}
 )
 
 type Styles struct {

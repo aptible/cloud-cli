@@ -1,13 +1,17 @@
 package fetch
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
+	"os"
 	"time"
 
-	"github.com/aptible/cloud-cli/ui/common"
-	"github.com/aptible/cloud-cli/ui/loader"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/aptible/cloud-cli/internal/ui/common"
+	"github.com/aptible/cloud-cli/internal/ui/loader"
 )
 
 type state int
@@ -18,7 +22,7 @@ const (
 	quitting
 )
 
-type FetchSuccess struct {
+type Success struct {
 	Result interface{}
 }
 
@@ -33,7 +37,7 @@ type Model struct {
 	styles  common.Styles
 }
 
-type Fx func() (interface{}, error)
+type Fx func() (dataModel interface{}, statusCode int, error error)
 
 func NewModel(text string, io Fx) Model {
 	s := loader.NewModel(text)
@@ -42,12 +46,16 @@ func NewModel(text string, io Fx) Model {
 
 func create(fx Fx) tea.Cmd {
 	return func() tea.Msg {
-		res, err := fx()
+		res, statusCode, err := fx()
 		if err != nil {
 			return err
 		}
 
-		return FetchSuccess{Result: res}
+		if statusCode >= http.StatusBadRequest {
+			return errors.New("http error status raised")
+		}
+
+		return Success{Result: res}
 	}
 }
 
@@ -79,14 +87,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 
-	case FetchSuccess:
+	case Success:
 		m.status = success
 		m.Result = msg.Result
 		return m, successCmd()
 
 	case errMsg:
 		m.Err = msg
-		fmt.Println(msg)
+		fmt.Println(fmt.Sprintf("Error encountered: %s", msg))
 		return m, tea.Quit
 
 	default:
@@ -110,13 +118,13 @@ func (m Model) View() string {
 	return str
 }
 
-func FetchAny(model tea.Model) error {
+func Any(model tea.Model) error {
 	p := tea.NewProgram(model)
 	err := p.Start()
 	return err
 }
 
-func FetchWithOutput(model tea.Model) (*Model, error) {
+func WithOutput(model tea.Model) (*Model, error) {
 	p := tea.NewProgram(model)
 	m, err := p.StartReturningModel()
 	if err != nil {
@@ -124,5 +132,10 @@ func FetchWithOutput(model tea.Model) (*Model, error) {
 	}
 
 	n := m.(Model)
+	if n.Err != nil {
+		n.Update(n.Err) // this also quites the program
+		os.Exit(1)
+	}
+
 	return &n, nil
 }

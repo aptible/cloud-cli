@@ -2,10 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/aptible/cloud-cli/cmd/assets"
+	"github.com/aptible/cloud-cli/internal/common"
 )
 
 var (
@@ -13,7 +17,7 @@ var (
 	token      string
 	authDomain string
 	apiDomain  string
-	orgID      string
+	orgId      string
 	debug      bool
 )
 
@@ -38,27 +42,47 @@ func NewRootCmd() *cobra.Command {
 
 	cobra.OnInitialize(initConfig())
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.aptible.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "common", "", "common file (default is $HOME/.aptible.yaml)")
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "jwt token")
 	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "auth.aptible.com", "auth domain")
 	rootCmd.PersistentFlags().StringVar(&apiDomain, "api-domain", "cloud-api.aptible.com", "api domain")
-	rootCmd.PersistentFlags().StringVar(&orgID, "org", "", "organization id")
+	rootCmd.PersistentFlags().StringVar(&orgId, "org", "", "organization id")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "debug logging")
 
-	viper.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token"))
-	viper.BindPFlag("auth-domain", rootCmd.PersistentFlags().Lookup("auth-domain"))
-	viper.BindPFlag("api-domain", rootCmd.PersistentFlags().Lookup("api-domain"))
-	viper.BindPFlag("org", rootCmd.PersistentFlags().Lookup("org"))
-	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	errs := []error{
+		viper.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token")),
+		viper.BindPFlag("auth-domain", rootCmd.PersistentFlags().Lookup("auth-domain")),
+		viper.BindPFlag("api-domain", rootCmd.PersistentFlags().Lookup("api-domain")),
+		viper.BindPFlag("org", rootCmd.PersistentFlags().Lookup("org")),
+		viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")),
+	}
 
+	viperErrOnInit := false
+	for _, err := range errs {
+		if err != nil {
+			log.Println(err)
+			viperErrOnInit = true
+		}
+	}
+	if viperErrOnInit {
+		log.Println("Unable to initialize viper config")
+		os.Exit(1)
+	}
+
+	assetCmd := assets.NewAssetCmd()
 	envCmd := NewEnvCmd()
-	dsCmd := NewDatastoreCmd()
+	dsCmd := assets.NewDatastoreCmd()
 	orgCmd := NewOrgCmd()
+	configCmd := common.NewConfigCmd()
+	vpcCmd := assets.NewVPCCmd()
 
 	rootCmd.AddCommand(
+		assetCmd,
+		configCmd,
 		dsCmd,
 		envCmd,
 		orgCmd,
+		vpcCmd,
 	)
 
 	return rootCmd
@@ -80,7 +104,7 @@ func initConfig() func() {
 		cobra.CheckErr(err)
 
 		if cfgFile != "" {
-			// Use config file from the flag.
+			// Use common file from the flag.
 			vconfig.SetConfigFile(cfgFile)
 		} else {
 			vconfig.AddConfigPath(home)
@@ -91,12 +115,16 @@ func initConfig() func() {
 		vconfig.AutomaticEnv()
 
 		if token == "" {
-			token = findToken(home, fmt.Sprintf("https://%s", authDomain))
+			token, err = common.FindToken(home, fmt.Sprintf("https://%s", authDomain))
+			if err != nil {
+				fmt.Println("Unable to load token")
+				os.Exit(1)
+			}
 		}
 		vconfig.Set("token", token)
 
 		if err := vconfig.ReadInConfig(); err == nil {
-			fmt.Println("Using config file:", vconfig.ConfigFileUsed())
+			fmt.Println("Using common file:", vconfig.ConfigFileUsed())
 		}
 	}
 }
