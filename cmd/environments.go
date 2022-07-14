@@ -25,7 +25,7 @@ func environmentsTable(orgOutput interface{}) table.Model {
 				"name": org.Name,
 			}))
 		}
-	case cloudapiclient.EnvironmentOutput:
+	case *cloudapiclient.EnvironmentOutput:
 		rows = append(rows, table.NewRow(table.RowData{
 			"id":   data.Id,
 			"name": data.Name,
@@ -59,7 +59,7 @@ func envCreateRun() common.CobraRunE {
 			return err
 		}
 
-		envTable := environmentsTable(result.Result.(cloudapiclient.EnvironmentOutput))
+		envTable := environmentsTable(result.Result.(*cloudapiclient.EnvironmentOutput))
 		// TODO - print with tea
 		fmt.Println("Created Environment(s)")
 		fmt.Println(envTable.View())

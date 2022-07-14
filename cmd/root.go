@@ -69,6 +69,7 @@ func NewRootCmd() *cobra.Command {
 		os.Exit(1)
 	}
 
+	assetCmd := assets.NewAssetCmd()
 	envCmd := NewEnvCmd()
 	dsCmd := assets.NewDatastoreCmd()
 	orgCmd := NewOrgCmd()
@@ -76,6 +77,7 @@ func NewRootCmd() *cobra.Command {
 	vpcCmd := assets.NewVPCCmd()
 
 	rootCmd.AddCommand(
+		assetCmd,
 		configCmd,
 		dsCmd,
 		envCmd,

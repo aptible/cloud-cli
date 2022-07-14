@@ -133,16 +133,16 @@ func vpcListRun() common.CobraRunE {
 
 func NewVPCCmd() *cobra.Command {
 	vpcCmd := &cobra.Command{
-		Use:     "vpc",
-		Short:   "the vpc subcommand helps manage your Aptible vpcs.",
-		Long:    `The vpc subcommand helps manage your Aptible vpcs.`,
-		Aliases: []string{"v"},
+		Use:     "networks",
+		Short:   "the network subcommand helps manage your Aptible network assets.",
+		Long:    `The network subcommand helps manage your Aptible network assets.`,
+		Aliases: []string{"v", "vpc"},
 	}
 
 	vpcCreateCmd := &cobra.Command{
 		Use:     "create",
-		Short:   "provision a new vpc.",
-		Long:    `The vpc create command will provision a new vpc.`,
+		Short:   "provision a new network.",
+		Long:    `The network create command will provision a new network.`,
 		Aliases: []string{"c", "deploy"},
 		Args:    cobra.ExactArgs(1),
 		RunE:    vpcCreateRun(),
@@ -150,8 +150,8 @@ func NewVPCCmd() *cobra.Command {
 
 	vpcDestroyCmd := &cobra.Command{
 		Use:     "destroy",
-		Short:   "permanently remove the vpc.",
-		Long:    `The vpc destroy command will permanently remove the vpc.`,
+		Short:   "permanently remove the network.",
+		Long:    `The network destroy command will permanently remove the network.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
 		Args:    cobra.ExactArgs(1),
 		RunE:    vpcDestroyRun(),
@@ -159,8 +159,8 @@ func NewVPCCmd() *cobra.Command {
 
 	vpcListCmd := &cobra.Command{
 		Use:     "list",
-		Short:   "list all vpcs within an organization.",
-		Long:    `The vpc list command will list all vpcs within an organization.`,
+		Short:   "list all networks within an organization.",
+		Long:    `The network list command will list all networks within an organization.`,
 		Aliases: []string{"ls"},
 		RunE:    vpcListRun(),
 	}

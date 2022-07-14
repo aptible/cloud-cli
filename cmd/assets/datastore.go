@@ -163,9 +163,9 @@ func dsListRun() common.CobraRunE {
 func NewDatastoreCmd() *cobra.Command {
 	datastoreCmd := &cobra.Command{
 		Use:     "datastore",
-		Short:   "the datastore subcommand helps manage your Aptible datastores.",
-		Long:    `The datastore subcommand helps manage your Aptible datastores.`,
-		Aliases: []string{"database", "ds", "db"},
+		Short:   "the datastore subcommand helps manage your Aptible datastore assets.",
+		Long:    `The datastore subcommand helps manage your Aptible datastore assets.`,
+		Aliases: []string{"database", "ds", "db", "rds"},
 	}
 
 	dsCreateCmd := &cobra.Command{
