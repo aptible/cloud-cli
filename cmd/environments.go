@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/aptible/cloud-cli/internal/common"
+	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
 
@@ -32,8 +33,8 @@ func environmentsTable(orgOutput interface{}) table.Model {
 	}
 
 	return table.New([]table.Column{
-		table.NewColumn("id", "Environment Id", 40),
-		table.NewColumn("name", "Environment Name", 40),
+		table.NewColumn("id", "Environment Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("name", "Environment Name", 40).WithStyle(uiCommon.DefaultRowStyle()),
 	}).WithRows(rows)
 }
 

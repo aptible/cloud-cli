@@ -12,3 +12,5 @@ jobs:
         with:
           go-version: '>=1.18.0'
       - run: go test ./...
+        env:
+          GOPRIVATE: "github.com/aptible/cloud-api-clients"

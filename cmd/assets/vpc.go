@@ -10,8 +10,18 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/aptible/cloud-cli/internal/common"
+	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
+
+func generateVpcRowFromData(asset cloudapiclient.AssetOutput) table.Row {
+	row := table.NewRow(table.RowData{
+		"id":     asset.Id,
+		"status": asset.Status,
+		"name":   asset.CurrentAssetParameters.Data["name"],
+	})
+	return colorizeAssetFromStatus(asset, row)
+}
 
 // dataStoreTable - prints out a table of datastores
 func vpcTable(orgOutput interface{}) table.Model {
@@ -20,21 +30,16 @@ func vpcTable(orgOutput interface{}) table.Model {
 	switch data := orgOutput.(type) {
 	case []cloudapiclient.AssetOutput:
 		for _, asset := range data {
-			rows = append(rows, table.NewRow(table.RowData{
-				"id":     asset.Id,
-				"status": asset.Status,
-			}))
+			rows = append(rows, generateVpcRowFromData(asset))
 		}
 	case *cloudapiclient.AssetOutput:
-		rows = append(rows, table.NewRow(table.RowData{
-			"id":     data.Id,
-			"status": data.Status,
-		}))
+		rows = append(rows, generateVpcRowFromData(*data))
 	}
 
 	return table.New([]table.Column{
-		table.NewColumn("id", "VPC Asset Id", 40),
-		table.NewColumn("status", "VPC Status", 40),
+		table.NewColumn("id", "Asset Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("status", "Status", 40).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("name", "Name", 40).WithStyle(uiCommon.DefaultRowStyle()),
 	}).WithRows(rows)
 }
 

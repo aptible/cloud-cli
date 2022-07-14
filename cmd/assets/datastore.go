@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/aptible/cloud-cli/internal/common"
+	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
 
@@ -21,6 +22,18 @@ var (
 	vpcName       string
 )
 
+func generateDatastoreRowFromData(asset cloudapiclient.AssetOutput) table.Row {
+	row := table.NewRow(table.RowData{
+		"id":             asset.Id,
+		"status":         asset.Status,
+		"name":           asset.CurrentAssetParameters.Data["name"],
+		"engine":         asset.CurrentAssetParameters.Data["engine"],
+		"engine_version": asset.CurrentAssetParameters.Data["engine_version"],
+		"vpc_name":       asset.CurrentAssetParameters.Data["vpc_name"],
+	})
+	return colorizeAssetFromStatus(asset, row)
+}
+
 // dataStoreTable - prints out a table of datastores
 func dataStoreTable(orgOutput interface{}) table.Model {
 	rows := make([]table.Row, 0)
@@ -28,21 +41,19 @@ func dataStoreTable(orgOutput interface{}) table.Model {
 	switch data := orgOutput.(type) {
 	case []cloudapiclient.AssetOutput:
 		for _, asset := range data {
-			rows = append(rows, table.NewRow(table.RowData{
-				"id":     asset.Id,
-				"status": asset.Status,
-			}))
+			rows = append(rows, generateDatastoreRowFromData(asset))
 		}
-	case cloudapiclient.AssetOutput:
-		rows = append(rows, table.NewRow(table.RowData{
-			"id":     data.Id,
-			"status": data.Status,
-		}))
+	case *cloudapiclient.AssetOutput:
+		rows = append(rows, generateDatastoreRowFromData(*data))
 	}
 
 	return table.New([]table.Column{
-		table.NewColumn("id", "Datastore Id", 40),
-		table.NewColumn("status", "Datastore Status", 40),
+		table.NewColumn("id", "Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("status", "Status", 40).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("name", "Name", 20).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("engine", "Engine", 20).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("engine_version", "Engine Version", 20).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("vpc_name", "VPC Name", 20).WithStyle(uiCommon.DefaultRowStyle()),
 	}).WithRows(rows)
 }
 
