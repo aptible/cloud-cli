@@ -27,6 +27,13 @@ func colorizeAssetFromStatus(asset cloudapiclient.AssetOutput, row table.Row) ta
 	}
 }
 
+// listAssets - list all possible assets with common fields
+func listAssets() common.CobraRunE {
+	return func(cmd *cobra.Command, args []string) error {
+		return nil
+	}
+}
+
 // createAsset - entry point to create an asset barebones
 func createAsset() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {

@@ -1,0 +1,20 @@
+name: Go Releaser
+# Source: https://github.com/tchupp/actions-update-semver-tags
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
