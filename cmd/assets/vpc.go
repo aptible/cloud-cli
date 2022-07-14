@@ -60,7 +60,7 @@ func vpcCreateRun() common.CobraRunE {
 			return config.Cc.CreateAsset(orgId, envId, params)
 		})
 
-		result, err := fetch.FetchWithOutput(model)
+		result, err := fetch.WithOutput(model)
 		if err != nil {
 			return err
 		}
@@ -92,7 +92,7 @@ func vpcListRun() common.CobraRunE {
 			return config.Cc.ListAssets(orgId, env)
 		})
 
-		rawResult, err := fetch.FetchWithOutput(model)
+		rawResult, err := fetch.WithOutput(model)
 		if err != nil {
 			return err
 		}

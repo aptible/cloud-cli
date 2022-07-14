@@ -2,7 +2,6 @@ package assets
 
 import (
 	"fmt"
-	"github.com/aptible/cloud-cli/internal/common"
 	"strings"
 
 	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
@@ -10,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/aptible/cloud-cli/internal/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
 
@@ -85,7 +85,7 @@ func dsCreateRun() common.CobraRunE {
 			return config.Cc.CreateAsset(orgId, env, params)
 		})
 
-		result, err := fetch.FetchWithOutput(model)
+		result, err := fetch.WithOutput(model)
 		if err != nil {
 			return err
 		}
@@ -115,7 +115,7 @@ func dsListRun() common.CobraRunE {
 			return config.Cc.ListAssets(orgId, env)
 		})
 
-		rawResult, err := fetch.FetchWithOutput(model)
+		rawResult, err := fetch.WithOutput(model)
 		if err != nil {
 			return err
 		}

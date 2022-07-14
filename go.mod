@@ -2,8 +2,6 @@ module github.com/aptible/cloud-cli
 
 go 1.18
 
-// replace github.com/aptible/cloud-api-clients/clients/go => /Users/ericbower/work/cloud-api-clients/clients/go
-
 require (
 	github.com/aptible/cloud-api-clients/clients/go v0.0.0-20220707141259-b416ec2419a6
 	github.com/charmbracelet/bubbles v0.12.0

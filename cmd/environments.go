@@ -53,7 +53,7 @@ func envCreateRun() common.CobraRunE {
 			return config.Cc.CreateEnvironment(orgId, params)
 		})
 
-		result, err := fetch.FetchWithOutput(progressModel)
+		result, err := fetch.WithOutput(progressModel)
 		if err != nil {
 			return err
 		}
@@ -78,7 +78,7 @@ func envDestroyRun() common.CobraRunE {
 			return nil, status, err
 		})
 
-		err := fetch.FetchAny(model)
+		err := fetch.Any(model)
 
 		// does not print anything, no table to print here
 		fmt.Println(fmt.Sprintf("Destroyed environment: %s", envId))
@@ -94,7 +94,7 @@ func envListRun() common.CobraRunE {
 		model := fetch.NewModel("fetching environments", func() (interface{}, int, error) {
 			return config.Cc.ListEnvironments(orgId)
 		})
-		result, err := fetch.FetchWithOutput(model)
+		result, err := fetch.WithOutput(model)
 		if err != nil {
 			return err
 		}

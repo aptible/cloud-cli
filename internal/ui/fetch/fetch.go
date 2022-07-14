@@ -22,7 +22,7 @@ const (
 	quitting
 )
 
-type FetchSuccess struct {
+type Success struct {
 	Result interface{}
 }
 
@@ -55,7 +55,7 @@ func create(fx Fx) tea.Cmd {
 			return errors.New("http error status raised")
 		}
 
-		return FetchSuccess{Result: res}
+		return Success{Result: res}
 	}
 }
 
@@ -87,7 +87,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 
-	case FetchSuccess:
+	case Success:
 		m.status = success
 		m.Result = msg.Result
 		return m, successCmd()
@@ -118,13 +118,13 @@ func (m Model) View() string {
 	return str
 }
 
-func FetchAny(model tea.Model) error {
+func Any(model tea.Model) error {
 	p := tea.NewProgram(model)
 	err := p.Start()
 	return err
 }
 
-func FetchWithOutput(model tea.Model) (*Model, error) {
+func WithOutput(model tea.Model) (*Model, error) {
 	p := tea.NewProgram(model)
 	m, err := p.StartReturningModel()
 	if err != nil {

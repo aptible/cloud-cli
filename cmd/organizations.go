@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/aptible/cloud-cli/internal/common"
 
 	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/evertras/bubble-table/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/aptible/cloud-cli/internal/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
 )
 
@@ -55,7 +55,7 @@ func organizationCreateRun() common.CobraRunE {
 		progressModel := fetch.NewModel("creating organization", func() (interface{}, int, error) {
 			return config.Cc.CreateOrg(orgId, params)
 		})
-		result, err := fetch.FetchWithOutput(progressModel)
+		result, err := fetch.WithOutput(progressModel)
 		if err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ func orgListRun() common.CobraRunE {
 		progressModel := fetch.NewModel("fetching organizations", func() (interface{}, int, error) {
 			return config.Cc.ListOrgs()
 		})
-		result, err := fetch.FetchWithOutput(progressModel)
+		result, err := fetch.WithOutput(progressModel)
 		if err != nil {
 			return err
 		}
