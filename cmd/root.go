@@ -54,11 +54,13 @@ func NewRootCmd() *cobra.Command {
 	envCmd := NewEnvCmd()
 	dsCmd := NewDatastoreCmd()
 	orgCmd := NewOrgCmd()
+	assetCmd := NewAssetCmd()
 
 	rootCmd.AddCommand(
 		dsCmd,
 		envCmd,
 		orgCmd,
+		assetCmd,
 	)
 
 	return rootCmd

@@ -18,6 +18,8 @@ type CloudClient interface {
 	FindOrg(orgID string) (*client.OrganizationOutput, error)
 
 	CreateAsset(orgID string, envID string, params client.AssetInput) (*client.AssetOutput, error)
+	ListAssets(orgID string, envID string) ([]client.AssetOutput, error)
+	DestroyAsset(orgID string, envID string, assetID string) error
 
 	// ListAssetTypesForEnvironment(envID string) error
 	// UpdateAsset(orgID string, envID string, assetID string, assetInput *client.AssetInput) error

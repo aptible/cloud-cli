@@ -87,6 +87,13 @@ func (c *Client) FindOrg(orgID string) (*client.OrganizationOutput, error) {
 	return org, err
 }
 
+func (c *Client) ListOrgs() ([]client.OrganizationOutput, error) {
+	request := c.ApiClient.OrganizationsApi.GetOrganizationsApiV1OrganizationsGet(c.Ctx)
+	orgs, r, err := request.Execute()
+	c.PrintResponse(r)
+	return orgs, err
+}
+
 func (c *Client) CreateAsset(orgID string, envID string, params client.AssetInput) (*client.AssetOutput, error) {
 	request := c.ApiClient.AssetsApi.CreateAssetApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsPost(c.Ctx, envID, orgID).AssetInput(params)
 	asset, r, err := request.Execute()
@@ -94,9 +101,16 @@ func (c *Client) CreateAsset(orgID string, envID string, params client.AssetInpu
 	return asset, err
 }
 
-func (c *Client) ListOrgs() ([]client.OrganizationOutput, error) {
-	request := c.ApiClient.OrganizationsApi.GetOrganizationsApiV1OrganizationsGet(c.Ctx)
-	orgs, r, err := request.Execute()
+func (c *Client) ListAssets(orgID string, envID string) ([]client.AssetOutput, error) {
+	request := c.ApiClient.AssetsApi.GetAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsGet(c.Ctx, envID, orgID)
+	assets, r, err := request.Execute()
 	c.PrintResponse(r)
-	return orgs, err
+	return assets, err
+}
+
+func (c *Client) DestroyAsset(orgID string, envID string, assetID string) error {
+	request := c.ApiClient.AssetsApi.DeleteAssetByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdDelete(c.Ctx, envID, orgID, assetID)
+	_, r, err := request.Execute()
+	c.PrintResponse(r)
+	return err
 }
