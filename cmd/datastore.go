@@ -15,6 +15,8 @@ var (
 	engine        string
 	engineVersion string
 	env           string
+	name          string
+	vpcName       string
 )
 
 // dataStoreTable - prints out a table of datastores
@@ -47,20 +49,28 @@ func dsCreateRun() CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
-		envId := args[0]
-		name := args[1]
 
+		if env == "" {
+			return fmt.Errorf("must provide env")
+		}
 		if engine == "" {
 			return fmt.Errorf("must provide engine")
 		}
 		if engineVersion == "" {
 			return fmt.Errorf("must provide engine version")
 		}
+		if name == "" {
+			return fmt.Errorf("must provide name")
+		}
+		if vpcName == "" {
+			return fmt.Errorf("must provide vpc-name")
+		}
 
 		vars := map[string]interface{}{
 			"name":           name,
 			"engine":         engine,
 			"engine_version": engineVersion,
+			"vpc_name":       vpcName,
 		}
 		params := apiclient.AssetInput{
 			Asset:           "aws__rds__latest",
@@ -70,7 +80,7 @@ func dsCreateRun() CobraRunE {
 
 		msg := fmt.Sprintf("creating datastore %s (v%s)", engine, engineVersion)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.CreateAsset(orgId, envId, params)
+			return config.Cc.CreateAsset(orgId, env, params)
 		})
 
 		result, err := fetch.FetchWithOutput(model)
@@ -87,10 +97,8 @@ func dsCreateRun() CobraRunE {
 // dsDestroyRun - destroy datastore
 func dsDestroyRun() CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
-		config := NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		fmt.Println(orgId)
-		return nil
+		fmt.Println(fmt.Sprintf("Destroying datastore id: %s", args[0]))
+		return destroyAsset(cmd, args)
 	}
 }
 
@@ -150,7 +158,6 @@ func NewDatastoreCmd() *cobra.Command {
 		Short:   "provision a new datastore.",
 		Long:    `The datastore create command will provision a new datastore.`,
 		Aliases: []string{"c", "deploy"},
-		Args:    cobra.MinimumNArgs(2),
 		RunE:    dsCreateRun(),
 	}
 
@@ -172,7 +179,13 @@ func NewDatastoreCmd() *cobra.Command {
 	}
 
 	dsCreateCmd.Flags().StringVarP(&engine, "engine", "e", "", "the datastore engine, e.g. rds/postgres, rds/mysql, etc.")
-	dsCreateCmd.Flags().StringVarP(&engineVersion, "version", "v", "", "the engine version, e.g. 14.2")
+	dsCreateCmd.Flags().StringVarP(&engineVersion, "engine-version", "v", "", "the engine version, e.g. 14.2")
+	dsCreateCmd.Flags().StringVar(&env, "env", "", "the environment id to deploy to")
+	dsCreateCmd.Flags().StringVar(&name, "name", "", "the name to assign to rds")
+	dsCreateCmd.Flags().StringVarP(&vpcName, "vpc-name", "", "", "the vpc to attach rds to")
+
+	dsDestroyCmd.Flags().StringVar(&env, "env", "", "delete datastore within an environment")
+
 	dsListCmd.Flags().StringVar(&env, "env", "", "list datastores within an environment")
 
 	datastoreCmd.AddCommand(dsCreateCmd)

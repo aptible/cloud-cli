@@ -44,7 +44,14 @@ func findToken(home string, domain string) (string, error) {
 }
 
 func NewCloudConfig(v *viper.Viper) *CloudConfig {
-	host := v.GetString("api-domain")
+	var host string
+	if os.Getenv("APTIBLE_API_DOMAIN") != "" {
+		// TODO - find a better way to do this
+		host = os.Getenv("APTIBLE_API_DOMAIN")
+	} else {
+		host = v.GetString("api-domain")
+	}
+
 	token := v.GetString("token")
 	debug := v.GetBool("debug")
 	cc := client.NewClient(debug, host, token)

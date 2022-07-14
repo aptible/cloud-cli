@@ -85,7 +85,7 @@ func orgListRun() CobraRunE {
 
 		orgsTable := organizationsTable(result.Result.([]apiclient.OrganizationOutput))
 		// TODO - print with tea
-		fmt.Println("Organizations List")
+		fmt.Println("Organization(s) List")
 		fmt.Println(orgsTable.View())
 
 		return nil

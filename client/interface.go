@@ -22,5 +22,5 @@ type CloudClient interface {
 	ListAssets(orgId string, envId string) ([]cloudapiclient.AssetOutput, error)
 	//ListAssetTypesForEnvironment(envId string) error
 	// UpdateAsset(orgId string, envId string, assetID string, assetInput *client.AssetInput) error
-	// DeleteAsset(orgId string, envId string, assetID string) error
+	DestroyAsset(orgId string, envId string, assetID string) error
 }

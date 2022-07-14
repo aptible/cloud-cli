@@ -107,6 +107,13 @@ func (c *client) CreateAsset(orgId string, envId string, params cloudapiclient.A
 	return asset, err
 }
 
+func (c *client) DestroyAsset(orgId string, envId string, assetId string) error {
+	request := c.apiClient.AssetsApi.DeleteAssetByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdDelete(c.ctx, assetId, envId, orgId)
+	_, r, err := request.Execute()
+	c.PrintResponse(r)
+	return err
+}
+
 func (c *client) ListAssets(orgId string, envId string) ([]cloudapiclient.AssetOutput, error) {
 	request := c.apiClient.AssetsApi.GetAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsGet(c.ctx, envId, orgId)
 	assets, r, err := request.Execute()
