@@ -2,6 +2,7 @@ package assets
 
 import (
 	"fmt"
+	"strings"
 
 	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/evertras/bubble-table/table"
@@ -33,10 +34,14 @@ func generateAssetRowFromData(asset cloudapiclient.AssetOutput) table.Row {
 	if assetName == "" {
 		assetName = "N/A"
 	}
+	assetStr := strings.Split(asset.Asset, "__")
 	row := table.NewRow(table.RowData{
-		"id":     asset.Id,
-		"status": asset.Status,
-		"name":   assetName,
+		"id":            asset.Id,
+		"status":        asset.Status,
+		"name":          assetName,
+		"cloud":         assetStr[0],
+		"asset_type":    assetStr[1],
+		"asset_version": assetStr[2],
 	})
 	return colorizeAssetFromStatus(asset, row)
 }
