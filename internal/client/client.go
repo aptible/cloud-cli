@@ -114,9 +114,23 @@ func (c *client) ListAssets(orgId string, envId string) ([]cloudapiclient.AssetO
 	return assets, r.StatusCode, err
 }
 
+func (c *client) DescribeAsset(orgId string, envId string, assetId string) (*cloudapiclient.AssetOutput, int, error) {
+	request := c.apiClient.AssetsApi.GetAssetByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdGet(c.ctx, assetId, envId, orgId)
+	asset, r, err := request.Execute()
+	c.PrintResponse(r)
+	return asset, r.StatusCode, err
+}
+
 func (c *client) ListOrgs() ([]cloudapiclient.OrganizationOutput, int, error) {
 	request := c.apiClient.OrganizationsApi.GetOrganizationsApiV1OrganizationsGet(c.ctx)
 	orgs, r, err := request.Execute()
 	c.PrintResponse(r)
 	return orgs, r.StatusCode, err
+}
+
+func (c *client) ListOperationsByAsset(orgId string, assetId string) ([]cloudapiclient.OperationOutput, int, error) {
+	request := c.apiClient.OperationsApi.GetOperationsApiV1OrganizationsOrganizationIdOperationsGet(c.ctx, orgId).AssetId(assetId)
+	ops, r, err := request.Execute()
+	c.PrintResponse(r)
+	return ops, r.StatusCode, err
 }

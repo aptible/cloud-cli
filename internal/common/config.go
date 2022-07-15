@@ -42,6 +42,7 @@ func FindToken(home string, domain string) (string, error) {
 	if err != nil {
 		panic(err)
 	}
+
 	return tokenObj[domain], nil
 }
 

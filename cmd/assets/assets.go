@@ -12,6 +12,7 @@ import (
 	"github.com/aptible/cloud-cli/internal/common"
 	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
+	render "github.com/aptible/cloud-cli/table"
 )
 
 // colorizeAssetFromStatus - common utility for assets to colorize rows in CLI based on asset status
@@ -28,12 +29,18 @@ func colorizeAssetFromStatus(asset cloudapiclient.AssetOutput, row table.Row) ta
 	}
 }
 
-// generateAssetRowFromData - generate a common table row for assets
-func generateAssetRowFromData(asset cloudapiclient.AssetOutput) table.Row {
+func getAssetName(asset cloudapiclient.AssetOutput) string {
 	assetName := asset.CurrentAssetParameters.Data["name"]
 	if assetName == "" {
 		assetName = "N/A"
 	}
+
+	return assetName.(string)
+}
+
+// generateAssetRowFromData - generate a common table row for assets
+func generateAssetRowFromData(asset cloudapiclient.AssetOutput) table.Row {
+	assetName := getAssetName(asset)
 	assetStr := strings.Split(asset.Asset, "__")
 	row := table.NewRow(table.RowData{
 		"id":            asset.Id,
@@ -72,8 +79,47 @@ func assetTable(orgOutput interface{}) table.Model {
 // describeAsset - commonly aliased func but describes any given asset by its asset id, env id (rds/vpc for example use this)
 func describeAsset() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
+		config := common.NewCloudConfig(viper.GetViper())
+		orgId := config.Vconfig.GetString("org")
+		envId := config.Vconfig.GetString("env")
+		assetId := args[0]
+		if envId == "" {
+			return fmt.Errorf("must provide env")
+		}
+
+		msg := fmt.Sprintf("describing asset %s", assetId)
+		model := fetch.NewModel(msg, func() (interface{}, int, error) {
+			return config.Cc.DescribeAsset(orgId, envId, assetId)
+		})
+		data, err := fetch.WithOutput(model)
+		if err != nil {
+			return err
+		}
+		asset := data.Result.(*cloudapiclient.AssetOutput)
+
+		opMsg := fmt.Sprintf("fetching operations for %s", assetId)
+		opModel := fetch.NewModel(opMsg, func() (interface{}, int, error) {
+			return config.Cc.ListOperationsByAsset(orgId, asset.Id)
+		})
+		opData, err := fetch.WithOutput(opModel)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Id: %s\n", asset.Id)
+		fmt.Printf("Name: %s\n", getAssetName(*asset))
+		fmt.Printf("Asset: %s\n", asset.Asset)
+
+		tbl := render.OperationTable(opData.Result.([]cloudapiclient.OperationOutput))
+		fmt.Println("\nOperation(s) List")
+		fmt.Println(tbl.View())
+
 		return nil
 	}
+}
+
+func assetDescribeRun() common.CobraRunE {
+	return describeAsset()
 }
 
 // destroyAsset - commonly aliased func but also can destroy assets on top level (rds/vpc for example use this)
@@ -156,7 +202,11 @@ func assetsListRun() common.CobraRunE {
 		orgId := config.Vconfig.GetString("org")
 		envId := config.Vconfig.GetString("env")
 
-		msg := fmt.Sprintf("getting datastores with env id: %s and org id: %s", envId, orgId)
+		if envId == "" {
+			return fmt.Errorf("env flag required")
+		}
+
+		msg := fmt.Sprintf("getting assets with env id: %s and org id: %s", envId, orgId)
 		model := fetch.NewModel(msg, func() (interface{}, int, error) {
 			return config.Cc.ListAssets(orgId, envId)
 		})
@@ -221,11 +271,20 @@ func NewAssetCmd() *cobra.Command {
 		RunE:    assetsListRun(),
 	}
 
+	assetDescribeCmd := &cobra.Command{
+		Use:     "describe",
+		Short:   "Show asset detail",
+		Long:    `The assets describe command will provide more detail about the asset`,
+		Aliases: []string{"show"},
+		RunE:    assetDescribeRun(),
+	}
+
 	assetCreateCmd.Flags().StringVarP(&vpcName, "vpc-name", "", "", "asset variables map")
 
 	assetCmd.AddCommand(assetCreateCmd)
 	assetCmd.AddCommand(assetDestroyCmd)
 	assetCmd.AddCommand(assetListCmd)
+	assetCmd.AddCommand(assetDescribeCmd)
 
 	return assetCmd
 }
