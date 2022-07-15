@@ -20,7 +20,10 @@ type CloudClient interface {
 
 	CreateAsset(orgId string, envId string, params cloudapiclient.AssetInput) (*cloudapiclient.AssetOutput, int, error)
 	ListAssets(orgId string, envId string) ([]cloudapiclient.AssetOutput, int, error)
+	DescribeAsset(orgId string, envId string, assetId string) (*cloudapiclient.AssetOutput, int, error)
 	//ListAssetTypesForEnvironment(envId string) error
 	// UpdateAsset(orgId string, envId string, assetID string, assetInput *client.AssetInput) error
 	DestroyAsset(orgId string, envId string, assetID string) (int, error)
+
+	ListOperationsByAsset(orgId string, assetId string) ([]cloudapiclient.OperationOutput, int, error)
 }
