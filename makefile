@@ -40,3 +40,11 @@ test: lint
 pretty:
 	go fmt ./...
 .PHONY: pretty
+
+release:
+	@echo "don't forget to create and push a git tag! e.g."
+	@echo "  git tag -a v0.1.0 -m 'First release'"
+	@echo "  git push origin v0.1.0"
+	@sleep 3
+	goreleaser release
+.PHONY: release
