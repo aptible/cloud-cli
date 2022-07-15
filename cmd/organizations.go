@@ -25,7 +25,7 @@ func organizationsTable(orgOutput interface{}) table.Model {
 				"name": org.Name,
 			}))
 		}
-	case cloudapiclient.OrganizationOutput:
+	case *cloudapiclient.OrganizationOutput:
 		rows = append(rows, table.NewRow(table.RowData{
 			"id":   data.Id,
 			"name": data.Name,
@@ -61,7 +61,7 @@ func organizationCreateRun() common.CobraRunE {
 			return err
 		}
 
-		orgsTable := organizationsTable(result.Result.(cloudapiclient.OrganizationOutput))
+		orgsTable := organizationsTable(result.Result.(*cloudapiclient.OrganizationOutput))
 		// TODO - print with tea
 		fmt.Println("Created Organization(s)")
 		fmt.Println(orgsTable.View())
