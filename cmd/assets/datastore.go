@@ -109,6 +109,11 @@ func dsCreateRun() common.CobraRunE {
 	}
 }
 
+// dsDescribeRun - describe datastore
+func dsDescribeRun() common.CobraRunE {
+	return describeAsset()
+}
+
 // dsDestroyRun - destroy datastore
 func dsDestroyRun() common.CobraRunE {
 	return destroyAsset()
@@ -194,6 +199,14 @@ func NewDatastoreCmd() *cobra.Command {
 		RunE:    dsListRun(),
 	}
 
+	dsDescribeCmd := &cobra.Command{
+		Use:     "describe",
+		Short:   "describe datastore",
+		Long:    `The datastore show command will provide more detail about a datastore`,
+		Aliases: []string{"show"},
+		RunE:    dsListRun(),
+	}
+
 	dsCreateCmd.Flags().StringVarP(&engine, "engine", "e", "", "the datastore engine, e.g. rds/postgres, rds/mysql, etc.")
 	dsCreateCmd.Flags().StringVarP(&engineVersion, "engine-version", "v", "", "the engine version, e.g. 14.2")
 	dsCreateCmd.Flags().StringVar(&name, "name", "", "the name to assign to rds")
@@ -202,6 +215,7 @@ func NewDatastoreCmd() *cobra.Command {
 	datastoreCmd.AddCommand(dsCreateCmd)
 	datastoreCmd.AddCommand(dsDestroyCmd)
 	datastoreCmd.AddCommand(dsListCmd)
+	datastoreCmd.AddCommand(dsDescribeCmd)
 
 	return datastoreCmd
 }

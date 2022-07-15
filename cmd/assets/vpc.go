@@ -83,6 +83,11 @@ func vpcCreateRun() common.CobraRunE {
 	}
 }
 
+// dsDescribeRun - destroy datastore
+func vpcDescribeRun() common.CobraRunE {
+	return describeAsset()
+}
+
 // dsDestroyRun - destroy datastore
 func vpcDestroyRun() common.CobraRunE {
 	return destroyAsset()
@@ -167,7 +172,16 @@ func NewVPCCmd() *cobra.Command {
 		RunE:    vpcListRun(),
 	}
 
+	vpcDescribeCmd := &cobra.Command{
+		Use:     "describe",
+		Short:   "describe vpc",
+		Long:    `The network describe command will provide more detail for a network`,
+		Aliases: []string{"show"},
+		RunE:    vpcDescribeRun(),
+	}
+
 	vpcCmd.AddCommand(vpcCreateCmd)
+	vpcCmd.AddCommand(vpcDescribeCmd)
 	vpcCmd.AddCommand(vpcDestroyCmd)
 	vpcCmd.AddCommand(vpcListCmd)
 
