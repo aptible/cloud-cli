@@ -22,14 +22,10 @@ func colorizeOperationFromStatus(asset cloudapiclient.OperationOutput, row table
 
 // generateAssetRowFromData - generate a common table row for assets
 func generateOperationRowFromData(op cloudapiclient.OperationOutput) table.Row {
-	var status []byte
-	var optype []byte
-	op.Status.Get().UnmarshalJSON(status)
-	op.Status.Get().UnmarshalJSON(optype)
 	row := table.NewRow(table.RowData{
 		"id":     op.Id,
-		"type":   string(optype),
-		"status": string(status),
+		"type":   *op.OperationType.Get(),
+		"status": *op.Status.Get(),
 	})
 	return colorizeOperationFromStatus(op, row)
 }
