@@ -10,20 +10,20 @@ The goal of this interface is to be an abstraction layer above the cloud-api.
 Whenever we want to interface with the API, we should use this interface.
 */
 type CloudClient interface {
-	ListEnvironments(orgId string) ([]cloudapiclient.EnvironmentOutput, int, error)
-	CreateEnvironment(orgId string, params cloudapiclient.EnvironmentInput) (*cloudapiclient.EnvironmentOutput, int, error)
-	DestroyEnvironment(orgId string, envId string) (int, error)
+	ListEnvironments(orgId string) ([]cloudapiclient.EnvironmentOutput, error)
+	CreateEnvironment(orgId string, params cloudapiclient.EnvironmentInput) (*cloudapiclient.EnvironmentOutput, error)
+	DestroyEnvironment(orgId string, envId string) error
 
-	ListOrgs() ([]cloudapiclient.OrganizationOutput, int, error)
-	CreateOrg(orgId string, params cloudapiclient.OrganizationInput) (*cloudapiclient.OrganizationOutput, int, error)
-	FindOrg(orgId string) (*cloudapiclient.OrganizationOutput, int, error)
+	ListOrgs() ([]cloudapiclient.OrganizationOutput, error)
+	CreateOrg(orgId string, params cloudapiclient.OrganizationInput) (*cloudapiclient.OrganizationOutput, error)
+	FindOrg(orgId string) (*cloudapiclient.OrganizationOutput, error)
 
-	CreateAsset(orgId string, envId string, params cloudapiclient.AssetInput) (*cloudapiclient.AssetOutput, int, error)
-	ListAssets(orgId string, envId string) ([]cloudapiclient.AssetOutput, int, error)
-	DescribeAsset(orgId string, envId string, assetId string) (*cloudapiclient.AssetOutput, int, error)
+	CreateAsset(orgId string, envId string, params cloudapiclient.AssetInput) (*cloudapiclient.AssetOutput, error)
+	ListAssets(orgId string, envId string) ([]cloudapiclient.AssetOutput, error)
+	DescribeAsset(orgId string, envId string, assetId string) (*cloudapiclient.AssetOutput, error)
 	//ListAssetTypesForEnvironment(envId string) error
 	// UpdateAsset(orgId string, envId string, assetID string, assetInput *client.AssetInput) error
-	DestroyAsset(orgId string, envId string, assetID string) (int, error)
+	DestroyAsset(orgId string, envId string, assetID string) error
 
-	ListOperationsByAsset(orgId string, assetId string) ([]cloudapiclient.OperationOutput, int, error)
+	ListOperationsByAsset(orgId string, assetId string) ([]cloudapiclient.OperationOutput, error)
 }

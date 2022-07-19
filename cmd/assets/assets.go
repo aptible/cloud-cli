@@ -88,7 +88,7 @@ func describeAsset() common.CobraRunE {
 		}
 
 		msg := fmt.Sprintf("describing asset %s", assetId)
-		model := fetch.NewModel(msg, func() (interface{}, int, error) {
+		model := fetch.NewModel(msg, func() (interface{}, error) {
 			return config.Cc.DescribeAsset(orgId, envId, assetId)
 		})
 		data, err := fetch.WithOutput(model)
@@ -98,7 +98,7 @@ func describeAsset() common.CobraRunE {
 		asset := data.Result.(*cloudapiclient.AssetOutput)
 
 		opMsg := fmt.Sprintf("fetching operations for %s", assetId)
-		opModel := fetch.NewModel(opMsg, func() (interface{}, int, error) {
+		opModel := fetch.NewModel(opMsg, func() (interface{}, error) {
 			return config.Cc.ListOperationsByAsset(orgId, asset.Id)
 		})
 		opData, err := fetch.WithOutput(opModel)
@@ -135,9 +135,9 @@ func destroyAsset() common.CobraRunE {
 		}
 
 		msg := fmt.Sprintf("destroying asset %s (v%s)", engine, engineVersion)
-		model := fetch.NewModel(msg, func() (interface{}, int, error) {
-			status, err := config.Cc.DestroyAsset(orgId, envId, assetId)
-			return nil, status, err
+		model := fetch.NewModel(msg, func() (interface{}, error) {
+			err := config.Cc.DestroyAsset(orgId, envId, assetId)
+			return nil, err
 		})
 		_, err := fetch.WithOutput(model)
 		if err != nil {
@@ -153,10 +153,10 @@ func destroyAsset() common.CobraRunE {
 func assetsCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgID := config.Vconfig.GetString("org")
-		envID := args[0]
-		assetType := args[1]
-		name := args[2]
+		org := config.Vconfig.GetString("org")
+		env := config.Vconfig.GetString("env")
+		assetType := args[0]
+		name := args[1]
 
 		if engine == "" {
 			return fmt.Errorf("must provide engine")
@@ -175,8 +175,8 @@ func assetsCreateRun() common.CobraRunE {
 		}
 
 		msg := fmt.Sprintf("creating asset %s (v%s)", engine, engineVersion)
-		model := fetch.NewModel(msg, func() (interface{}, int, error) {
-			return config.Cc.CreateAsset(orgID, envID, params)
+		model := fetch.NewModel(msg, func() (interface{}, error) {
+			return config.Cc.CreateAsset(org, env, params)
 		})
 
 		result, err := fetch.WithOutput(model)
@@ -207,7 +207,7 @@ func assetsListRun() common.CobraRunE {
 		}
 
 		msg := fmt.Sprintf("getting assets with env id: %s and org id: %s", envId, orgId)
-		model := fetch.NewModel(msg, func() (interface{}, int, error) {
+		model := fetch.NewModel(msg, func() (interface{}, error) {
 			return config.Cc.ListAssets(orgId, envId)
 		})
 
@@ -247,15 +247,16 @@ func NewAssetCmd() *cobra.Command {
 	}
 
 	assetCreateCmd := &cobra.Command{
-		Use:     "create",
+		Use:     "create [asset_type] [name]",
 		Short:   "provision a new asset.",
 		Long:    `The asset create command will provision a new asset.`,
 		Aliases: []string{"c", "deploy"},
+		Args:    cobra.MinimumNArgs(2),
 		RunE:    assetsCreateRun(),
 	}
 
 	assetDestroyCmd := &cobra.Command{
-		Use:     "destroy",
+		Use:     "destroy [asset_id]",
 		Short:   "permanently remove the asset.",
 		Long:    `The asset destroy command will permanently remove the asset.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
