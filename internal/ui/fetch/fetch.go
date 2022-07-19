@@ -1,9 +1,7 @@
 package fetch
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"time"
 
@@ -37,7 +35,7 @@ type Model struct {
 	styles  common.Styles
 }
 
-type Fx func() (dataModel interface{}, statusCode int, error error)
+type Fx func() (dataModel interface{}, error error)
 
 func NewModel(text string, io Fx) Model {
 	s := loader.NewModel(text)
@@ -46,13 +44,9 @@ func NewModel(text string, io Fx) Model {
 
 func create(fx Fx) tea.Cmd {
 	return func() tea.Msg {
-		res, statusCode, err := fx()
+		res, err := fx()
 		if err != nil {
 			return err
-		}
-
-		if statusCode >= http.StatusBadRequest {
-			return errors.New("http error status raised")
 		}
 
 		return Success{Result: res}
@@ -94,7 +88,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case errMsg:
 		m.Err = msg
-		fmt.Println(fmt.Sprintf("Error encountered: %s", msg))
+		fmt.Printf("Error encountered: %s\n", msg)
 		return m, tea.Quit
 
 	default:

@@ -50,7 +50,7 @@ func envCreateRun() common.CobraRunE {
 			Data:        map[string]interface{}{},
 		}
 
-		progressModel := fetch.NewModel("creating environment", func() (interface{}, int, error) {
+		progressModel := fetch.NewModel("creating environment", func() (interface{}, error) {
 			return config.Cc.CreateEnvironment(orgId, params)
 		})
 
@@ -74,15 +74,15 @@ func envDestroyRun() common.CobraRunE {
 		orgId := config.Vconfig.GetString("org")
 		envId := args[0]
 
-		model := fetch.NewModel("destroying environment", func() (interface{}, int, error) {
-			status, err := config.Cc.DestroyEnvironment(orgId, envId)
-			return nil, status, err
+		model := fetch.NewModel("destroying environment", func() (interface{}, error) {
+			err := config.Cc.DestroyEnvironment(orgId, envId)
+			return nil, err
 		})
 
 		err := fetch.Any(model)
 
 		// does not print anything, no table to print here
-		fmt.Println(fmt.Sprintf("Destroyed environment: %s", envId))
+		fmt.Printf("Destroyed environment: %s\n", envId)
 		return err
 	}
 }
@@ -92,7 +92,7 @@ func envListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
-		model := fetch.NewModel("fetching environments", func() (interface{}, int, error) {
+		model := fetch.NewModel("fetching environments", func() (interface{}, error) {
 			return config.Cc.ListEnvironments(orgId)
 		})
 		result, err := fetch.WithOutput(model)
@@ -124,8 +124,8 @@ func NewEnvCmd() *cobra.Command {
 	}
 
 	envCreateCmd := &cobra.Command{
-		Use:     "create",
-		Short:   "provision a new datastore.",
+		Use:     "create [env_name]",
+		Short:   "creates an environment under the current organization.",
 		Long:    `The environment create command will provision a new environment.`,
 		Aliases: []string{"c"},
 		Args:    cobra.MinimumNArgs(1),
@@ -133,9 +133,9 @@ func NewEnvCmd() *cobra.Command {
 	}
 
 	envDestroyCmd := &cobra.Command{
-		Use:     "destroy",
+		Use:     "destroy [env_id]",
 		Short:   "permentantly remove the environment.",
-		Long:    `The datastore destroy command will permanently remove the environment.`,
+		Long:    `The environment destroy command will permanently remove the environment.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
 		Args:    cobra.MinimumNArgs(1),
 		RunE:    envDestroyRun(),

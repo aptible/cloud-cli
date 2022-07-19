@@ -2,11 +2,9 @@ package common
 
 import (
 	"github.com/charmbracelet/lipgloss"
-	"github.com/evertras/bubble-table/table"
 )
 
 type Model struct {
-	simpleTable table.Model
 }
 
 func DefaultRowStyle() lipgloss.Style {

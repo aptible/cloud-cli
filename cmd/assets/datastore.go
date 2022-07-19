@@ -92,7 +92,7 @@ func dsCreateRun() common.CobraRunE {
 		}
 
 		msg := fmt.Sprintf("creating datastore %s (v%s)", engine, engineVersion)
-		model := fetch.NewModel(msg, func() (interface{}, int, error) {
+		model := fetch.NewModel(msg, func() (interface{}, error) {
 			return config.Cc.CreateAsset(orgId, envId, params)
 		})
 
@@ -110,9 +110,9 @@ func dsCreateRun() common.CobraRunE {
 }
 
 // dsDescribeRun - describe datastore
-func dsDescribeRun() common.CobraRunE {
+/* func dsDescribeRun() common.CobraRunE {
 	return describeAsset()
-}
+} */
 
 // dsDestroyRun - destroy datastore
 func dsDestroyRun() common.CobraRunE {
@@ -127,7 +127,7 @@ func dsListRun() common.CobraRunE {
 		envId := config.Vconfig.GetString("env")
 
 		msg := fmt.Sprintf("getting datastores with env id: %s and org id: %s", envId, orgId)
-		model := fetch.NewModel(msg, func() (interface{}, int, error) {
+		model := fetch.NewModel(msg, func() (interface{}, error) {
 			return config.Cc.ListAssets(orgId, envId)
 		})
 
@@ -183,7 +183,7 @@ func NewDatastoreCmd() *cobra.Command {
 	}
 
 	dsDestroyCmd := &cobra.Command{
-		Use:     "destroy",
+		Use:     "destroy [datastore_id]",
 		Short:   "permanently remove the datastore.",
 		Long:    `The datastore destroy command will permanently remove the datastore.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
@@ -207,7 +207,7 @@ func NewDatastoreCmd() *cobra.Command {
 		RunE:    dsListRun(),
 	}
 
-	dsCreateCmd.Flags().StringVarP(&engine, "engine", "e", "", "the datastore engine, e.g. rds/postgres, rds/mysql, etc.")
+	dsCreateCmd.Flags().StringVarP(&engine, "engine", "e", "", "the datastore engine, e.g. postgres, mysql, etc.")
 	dsCreateCmd.Flags().StringVarP(&engineVersion, "engine-version", "v", "", "the engine version, e.g. 14.2")
 	dsCreateCmd.Flags().StringVar(&name, "name", "", "the name to assign to rds")
 	dsCreateCmd.Flags().StringVarP(&vpcName, "vpc-name", "", "", "the vpc to attach rds to")

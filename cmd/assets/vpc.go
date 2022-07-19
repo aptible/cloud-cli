@@ -66,7 +66,7 @@ func vpcCreateRun() common.CobraRunE {
 		}
 
 		msg := fmt.Sprintf("creating vpc (%s)", name)
-		model := fetch.NewModel(msg, func() (interface{}, int, error) {
+		model := fetch.NewModel(msg, func() (interface{}, error) {
 			return config.Cc.CreateAsset(orgId, envId, params)
 		})
 
@@ -101,7 +101,7 @@ func vpcListRun() common.CobraRunE {
 		envId := config.Vconfig.GetString("env")
 
 		msg := fmt.Sprintf("getting vpcs with env id: %s and org id: %s", envId, orgId)
-		model := fetch.NewModel(msg, func() (interface{}, int, error) {
+		model := fetch.NewModel(msg, func() (interface{}, error) {
 			return config.Cc.ListAssets(orgId, envId)
 		})
 
@@ -140,14 +140,14 @@ func vpcListRun() common.CobraRunE {
 
 func NewVPCCmd() *cobra.Command {
 	vpcCmd := &cobra.Command{
-		Use:     "networks",
+		Use:     "network",
 		Short:   "the network subcommand helps manage your Aptible network assets.",
 		Long:    `The network subcommand helps manage your Aptible network assets.`,
 		Aliases: []string{"v", "vpc"},
 	}
 
 	vpcCreateCmd := &cobra.Command{
-		Use:     "create",
+		Use:     "create [asset_name]",
 		Short:   "provision a new network.",
 		Long:    `The network create command will provision a new network.`,
 		Aliases: []string{"c", "deploy"},
@@ -156,7 +156,7 @@ func NewVPCCmd() *cobra.Command {
 	}
 
 	vpcDestroyCmd := &cobra.Command{
-		Use:     "destroy",
+		Use:     "destroy [asset_id]",
 		Short:   "permanently remove the network.",
 		Long:    `The network destroy command will permanently remove the network.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
@@ -173,7 +173,7 @@ func NewVPCCmd() *cobra.Command {
 	}
 
 	vpcDescribeCmd := &cobra.Command{
-		Use:     "describe",
+		Use:     "describe [asset_id]",
 		Short:   "describe vpc",
 		Long:    `The network describe command will provide more detail for a network`,
 		Aliases: []string{"show"},

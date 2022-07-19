@@ -53,7 +53,7 @@ func organizationCreateRun() common.CobraRunE {
 			ContactDetails: output,
 		}
 
-		progressModel := fetch.NewModel("creating organization", func() (interface{}, int, error) {
+		progressModel := fetch.NewModel("creating organization", func() (interface{}, error) {
 			return config.Cc.CreateOrg(orgId, params)
 		})
 		result, err := fetch.WithOutput(progressModel)
@@ -74,7 +74,7 @@ func organizationCreateRun() common.CobraRunE {
 func orgListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		progressModel := fetch.NewModel("fetching organizations", func() (interface{}, int, error) {
+		progressModel := fetch.NewModel("fetching organizations", func() (interface{}, error) {
 			return config.Cc.ListOrgs()
 		})
 		result, err := fetch.WithOutput(progressModel)
@@ -104,7 +104,7 @@ func NewOrgCmd() *cobra.Command {
 	}
 
 	orgCreateCmd := &cobra.Command{
-		Use:     "create [org name]",
+		Use:     "create [org_name]",
 		Short:   "provision a new org.",
 		Long:    `The org create command will provision a new org.`,
 		Aliases: []string{"c"},
