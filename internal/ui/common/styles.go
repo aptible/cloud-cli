@@ -6,9 +6,9 @@ import (
 
 var (
 	// commented unused variables for now
-	//indigo       = lipgloss.AdaptiveColor{Light: "#5A56E0", Dark: "#7571F9"}
+	indigo = lipgloss.AdaptiveColor{Light: "#5A56E0", Dark: "#7571F9"}
 	//subtleIndigo = lipgloss.AdaptiveColor{Light: "#7D79F6", Dark: "#514DC1"}
-	//cream        = lipgloss.AdaptiveColor{Light: "#FFFDF5", Dark: "#FFFDF5"}
+	cream       = lipgloss.AdaptiveColor{Light: "#FFFDF5", Dark: "#FFFDF5"}
 	yellowGreen = lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#ECFD65"}
 	fuschia     = lipgloss.AdaptiveColor{Light: "#EE6FF8", Dark: "#EE6FF8"}
 	green       = lipgloss.Color("#04B575")
@@ -18,6 +18,8 @@ var (
 )
 
 type Styles struct {
+	Logo,
+	Window,
 	Cursor,
 	Wrap,
 	Paragraph,
@@ -32,6 +34,16 @@ type Styles struct {
 func DefaultStyles() Styles {
 	s := Styles{}
 
+	s.Window = lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("62")).
+		Padding(1, 2).
+		MarginRight(1).
+		Width(24)
+	s.Logo = lipgloss.NewStyle().
+		Foreground(cream).
+		Background(lipgloss.Color("#5A56E0")).
+		Padding(0, 1)
 	s.Cursor = lipgloss.NewStyle().Foreground(fuschia)
 	s.Wrap = lipgloss.NewStyle().Width(58)
 	s.Paragraph = s.Wrap.Copy().Margin(1, 0, 0, 2)
