@@ -19,22 +19,25 @@ func environmentsTable(orgOutput interface{}) table.Model {
 
 	switch data := orgOutput.(type) {
 	case []cloudapiclient.EnvironmentOutput:
-		for _, org := range data {
+		for _, env := range data {
 			rows = append(rows, table.NewRow(table.RowData{
-				"id":   org.Id,
-				"name": org.Name,
+				"id":             env.Id,
+				"name":           env.Name,
+				"aws_account_id": *env.AwsAccountId,
 			}))
 		}
 	case *cloudapiclient.EnvironmentOutput:
 		rows = append(rows, table.NewRow(table.RowData{
-			"id":   data.Id,
-			"name": data.Name,
+			"id":             data.Id,
+			"name":           data.Name,
+			"aws_account_id": *data.AwsAccountId,
 		}))
 	}
 
 	return table.New([]table.Column{
 		table.NewColumn("id", "Environment Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
 		table.NewColumn("name", "Environment Name", 40).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("aws_account_id", "AWS Account Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
 	}).WithRows(rows)
 }
 

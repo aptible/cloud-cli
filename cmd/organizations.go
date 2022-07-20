@@ -21,20 +21,23 @@ func organizationsTable(orgOutput interface{}) table.Model {
 	case []cloudapiclient.OrganizationOutput:
 		for _, org := range data {
 			rows = append(rows, table.NewRow(table.RowData{
-				"id":   org.Id,
-				"name": org.Name,
+				"id":     org.Id,
+				"name":   org.Name,
+				"aws_ou": *org.AwsOu,
 			}))
 		}
 	case *cloudapiclient.OrganizationOutput:
 		rows = append(rows, table.NewRow(table.RowData{
-			"id":   data.Id,
-			"name": data.Name,
+			"id":     data.Id,
+			"name":   data.Name,
+			"aws_ou": *data.AwsOu,
 		}))
 	}
 
 	return table.New([]table.Column{
 		table.NewColumn("id", "Organization Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
 		table.NewColumn("name", "Organization Name", 40).WithStyle(uiCommon.DefaultRowStyle()),
+		table.NewColumn("aws_ou", "AWS OU", 40).WithStyle(uiCommon.DefaultRowStyle()),
 	}).WithRows(rows)
 }
 
