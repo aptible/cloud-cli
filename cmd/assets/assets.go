@@ -97,17 +97,7 @@ func describeAsset() common.CobraRunE {
 		}
 		asset := data.Result.(*cloudapiclient.AssetOutput)
 
-		opMsg := fmt.Sprintf("fetching operations for %s", assetId)
-		opModel := fetch.NewModel(opMsg, func() (interface{}, error) {
-			return config.Cc.ListOperationsByAsset(orgId, asset.Id)
-		})
-		opData, err := fetch.WithOutput(opModel)
-		if err != nil {
-			return err
-		}
-		ops := opData.Result.([]cloudapiclient.OperationOutput)
-
-		uiAsset.Run(asset, ops)
+		uiAsset.Run(config, asset)
 
 		return nil
 	}

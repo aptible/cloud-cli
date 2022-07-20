@@ -6,20 +6,30 @@ import (
 	"time"
 
 	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
-	"github.com/aptible/cloud-cli/internal/ui/common"
+	"github.com/aptible/cloud-cli/internal/common"
+	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
+	"github.com/aptible/cloud-cli/internal/ui/fetch"
 	render "github.com/aptible/cloud-cli/table"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Model struct {
-	asset  *cloudapiclient.AssetOutput
-	ops    []cloudapiclient.OperationOutput
-	styles common.Styles
-	width  int
-	height int
-}
+type status int
 
-type tickMsg time.Time
+const (
+	statusInit status = iota
+	statusReady
+)
+
+type Model struct {
+	config   *common.CloudConfig
+	asset    *cloudapiclient.AssetOutput
+	ops      []cloudapiclient.OperationOutput
+	fetchOps fetch.Model
+	styles   uiCommon.Styles
+	width    int
+	height   int
+	status   status
+}
 
 func GetAssetName(asset *cloudapiclient.AssetOutput) string {
 	assetName := asset.CurrentAssetParameters.Data["name"]
@@ -30,18 +40,19 @@ func GetAssetName(asset *cloudapiclient.AssetOutput) string {
 	return assetName.(string)
 }
 
-func NewModel(asset *cloudapiclient.AssetOutput, ops []cloudapiclient.OperationOutput) *Model {
+func NewModel(config *common.CloudConfig, asset *cloudapiclient.AssetOutput) *Model {
 	m := &Model{
 		asset:  asset,
-		ops:    ops,
-		styles: common.DefaultStyles(),
+		styles: uiCommon.DefaultStyles(),
+		status: statusInit,
+		config: config,
 	}
 
 	return m
 }
 
-func Run(asset *cloudapiclient.AssetOutput, ops []cloudapiclient.OperationOutput) {
-	p := tea.NewProgram(NewModel(asset, ops), tea.WithAltScreen())
+func Run(config *common.CloudConfig, asset *cloudapiclient.AssetOutput) {
+	p := tea.NewProgram(NewModel(config, asset), tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
@@ -52,23 +63,44 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmds []tea.Cmd
+		cmd  tea.Cmd
+	)
+
 	switch msg := message.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		m.styles.Window.Height(m.height - 4)
 		m.styles.Window.Width(m.width - 2)
-		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "esc", "ctrl+c":
 			return m, tea.Quit
-		default:
-			return m, nil
 		}
+	case fetch.SuccessMsg:
+		m.ops = msg.Result.([]cloudapiclient.OperationOutput)
 	}
 
-	return m, nil
+	switch m.status {
+	case statusInit:
+		m.status = statusReady
+		opMsg := "refreshing"
+		m.fetchOps = fetch.NewModelLooper(opMsg, 10*time.Second, func() (interface{}, error) {
+			org := m.config.Vconfig.GetString("org")
+			return m.config.Cc.ListOperationsByAsset(org, m.asset.Id)
+		})
+		return m, m.fetchOps.Init()
+	}
+
+	tmp, cmd := m.fetchOps.Update(message)
+	if cmd != nil {
+		cmds = append(cmds, cmd)
+	}
+	m.fetchOps = tmp.(fetch.Model)
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
@@ -81,13 +113,13 @@ func (m Model) View() string {
 func helpView(m Model) string {
 	var items []string
 	items = append(items, "esc: exit")
-	return common.HelpView(items...)
+	return uiCommon.HelpView(items...)
 }
 
 func (m Model) bioView() string {
 	s := m.styles.Logo.Render(GetAssetName(m.asset))
 	s += "\n\n"
-	s += common.KeyValueView(
+	s += uiCommon.KeyValueView(
 		"Id", m.asset.Id,
 		"Asset", m.asset.Asset,
 	)
@@ -99,6 +131,7 @@ func (m Model) opsTableView() string {
 	tbl := render.OperationTable(m.ops)
 	s := "\n\n\n"
 	s += m.styles.Logo.Render("Operations")
+	s += "  " + m.fetchOps.View()
 	s += "\n"
 	s += tbl.View()
 	return s
