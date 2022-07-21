@@ -87,7 +87,7 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	case statusInit:
 		m.status = statusReady
 		opMsg := "refreshing"
-		m.fetchOps = fetch.NewModelLooper(opMsg, 10*time.Second, func() (interface{}, error) {
+		m.fetchOps = fetch.NewModelLooper(opMsg, 3*time.Second, func() (interface{}, error) {
 			org := m.config.Vconfig.GetString("org")
 			return m.config.Cc.ListOperationsByAsset(org, m.asset.Id)
 		})

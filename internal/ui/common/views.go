@@ -20,22 +20,22 @@ const (
 )
 
 var lineColors = map[State]lipgloss.TerminalColor{
-	StateNormal:   lipgloss.AdaptiveColor{Light: "#BCBCBC", Dark: "#646464"},
-	StateSelected: lipgloss.Color("#F684FF"),
-	StateDeleting: lipgloss.AdaptiveColor{Light: "#FF8BA7", Dark: "#893D4E"},
-	StateSpecial:  lipgloss.Color("#04B575"),
+	StateNormal:   lightGrey,
+	StateSelected: magenta,
+	StateDeleting: pink,
+	StateSpecial:  green,
 }
 
 var valStyle = lipgloss.NewStyle().Foreground(indigo)
 
 var (
 	helpDivider = lipgloss.NewStyle().
-			Foreground(lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"}).
+			Foreground(grey).
 			Padding(0, 1).
 			Render("•")
 
 	helpSection = lipgloss.NewStyle().
-			Foreground(lipgloss.AdaptiveColor{Light: "#9B9B9B", Dark: "#5C5C5C"})
+			Foreground(darkGrey)
 )
 
 // HelpView renders text intended to display at help text, often at the
