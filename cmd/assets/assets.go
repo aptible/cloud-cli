@@ -10,9 +10,9 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/aptible/cloud-cli/internal/common"
+	uiAsset "github.com/aptible/cloud-cli/internal/ui/asset"
 	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
-	render "github.com/aptible/cloud-cli/table"
 )
 
 // colorizeAssetFromStatus - common utility for assets to colorize rows in CLI based on asset status
@@ -97,22 +97,7 @@ func describeAsset() common.CobraRunE {
 		}
 		asset := data.Result.(*cloudapiclient.AssetOutput)
 
-		opMsg := fmt.Sprintf("fetching operations for %s", assetId)
-		opModel := fetch.NewModel(opMsg, func() (interface{}, error) {
-			return config.Cc.ListOperationsByAsset(orgId, asset.Id)
-		})
-		opData, err := fetch.WithOutput(opModel)
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("Id: %s\n", asset.Id)
-		fmt.Printf("Name: %s\n", getAssetName(*asset))
-		fmt.Printf("Asset: %s\n", asset.Asset)
-
-		tbl := render.OperationTable(opData.Result.([]cloudapiclient.OperationOutput))
-		fmt.Println("\nOperation(s) List")
-		fmt.Println(tbl.View())
+		uiAsset.Run(config, asset)
 
 		return nil
 	}

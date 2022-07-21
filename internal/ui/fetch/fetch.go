@@ -15,14 +15,17 @@ import (
 type state int
 
 const (
-	submitting state = iota
+	ready state = iota
+	submitting
 	success
 	quitting
 )
 
-type Success struct {
+type SuccessMsg struct {
 	Result interface{}
 }
+
+type fetchMsg struct{}
 
 type errMsg error
 
@@ -33,13 +36,25 @@ type Model struct {
 	io      Fx
 	status  state
 	styles  common.Styles
+	Loop    time.Duration
 }
 
 type Fx func() (dataModel interface{}, error error)
 
 func NewModel(text string, io Fx) Model {
 	s := loader.NewModel(text)
-	return Model{spinner: s, io: io, status: submitting, styles: common.MainStyles}
+	return Model{
+		spinner: s,
+		io:      io,
+		status:  ready,
+		styles:  common.MainStyles,
+	}
+}
+
+func NewModelLooper(text string, loop time.Duration, io Fx) Model {
+	mdl := NewModel(text, io)
+	mdl.Loop = loop
+	return mdl
 }
 
 func create(fx Fx) tea.Cmd {
@@ -49,24 +64,34 @@ func create(fx Fx) tea.Cmd {
 			return err
 		}
 
-		return Success{Result: res}
+		return SuccessMsg{Result: res}
 	}
 }
 
-func successCmd() tea.Cmd {
+func (m Model) FetchCmd() tea.Cmd {
 	return func() tea.Msg {
-		time.Sleep(300 * time.Millisecond)
-		return tea.Quit()
+		return fetchMsg{}
+	}
+}
+
+func (m Model) successCmd() tea.Cmd {
+	return func() tea.Msg {
+		if m.Loop == 0 {
+			time.Sleep(300 * time.Millisecond)
+			return tea.Quit()
+		}
+
+		time.Sleep(m.Loop)
+		return fetchMsg{}
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, create(m.io))
+	return tea.Batch(m.spinner.Tick, m.FetchCmd())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "esc", "ctrl+c":
@@ -81,20 +106,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 
-	case Success:
+	case fetchMsg:
+		m.status = submitting
+		return m, create(m.io)
+
+	case SuccessMsg:
 		m.status = success
 		m.Result = msg.Result
-		return m, successCmd()
+		return m, m.successCmd()
 
 	case errMsg:
 		m.Err = msg
 		fmt.Printf("Error encountered: %s\n", msg)
 		return m, tea.Quit
-
-	default:
-		return m, nil
 	}
 
+	return m, nil
 }
 
 func (m Model) View() string {
@@ -105,9 +132,9 @@ func (m Model) View() string {
 	if m.status == submitting {
 		str += m.spinner.View()
 	} else if m.status == success {
-		str += fmt.Sprintf("%s Success!", m.styles.Checkmark.String())
+		str += fmt.Sprintf("%s success!", m.styles.Checkmark.String())
 	} else if m.status == quitting {
-		return str + "\n"
+		str += "\n"
 	}
 	return str
 }
