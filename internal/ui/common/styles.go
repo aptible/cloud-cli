@@ -33,6 +33,9 @@ type Styles struct {
 	FocusedPrompt,
 	SelectionMarker,
 	SelectedMenuItem,
+	SuccessText,
+	InfoText,
+	ErrorText,
 	Checkmark lipgloss.Style
 }
 
@@ -63,6 +66,10 @@ func DefaultStyles() Styles {
 	s.Checkmark = lipgloss.NewStyle().
 		SetString("✔").
 		Foreground(green)
+	s.SuccessText = lipgloss.NewStyle().
+		Foreground(green)
+	s.InfoText = lipgloss.NewStyle().Foreground(grey)
+	s.ErrorText = lipgloss.NewStyle().Foreground(red)
 
 	return s
 }

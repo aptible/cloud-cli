@@ -11,6 +11,7 @@ import (
 	"github.com/aptible/cloud-cli/internal/common"
 	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
+	"github.com/aptible/cloud-cli/internal/ui/form"
 )
 
 // environmentsTable - prints out a table of environments
@@ -46,6 +47,12 @@ func envCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
+
+		formResult, err := form.OrgForm(config, orgId)
+		if err != nil {
+			return err
+		}
+
 		desc := ""
 		params := cloudapiclient.EnvironmentInput{
 			Name:        args[0],
@@ -54,7 +61,7 @@ func envCreateRun() common.CobraRunE {
 		}
 
 		progressModel := fetch.NewModel("creating environment", func() (interface{}, error) {
-			return config.Cc.CreateEnvironment(orgId, params)
+			return config.Cc.CreateEnvironment(formResult.Org, params)
 		})
 
 		result, err := fetch.WithOutput(progressModel)
@@ -77,12 +84,17 @@ func envDestroyRun() common.CobraRunE {
 		orgId := config.Vconfig.GetString("org")
 		envId := args[0]
 
+		formResult, err := form.EnvForm(config, orgId, envId)
+		if err != nil {
+			return err
+		}
+
 		model := fetch.NewModel("destroying environment", func() (interface{}, error) {
-			err := config.Cc.DestroyEnvironment(orgId, envId)
+			err := config.Cc.DestroyEnvironment(formResult.Org, formResult.Env)
 			return nil, err
 		})
 
-		err := fetch.Any(model)
+		err = fetch.Any(model)
 
 		// does not print anything, no table to print here
 		fmt.Printf("Destroyed environment: %s\n", envId)
@@ -95,8 +107,14 @@ func envListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
+
+		formResult, err := form.OrgForm(config, orgId)
+		if err != nil {
+			return err
+		}
+
 		model := fetch.NewModel("fetching environments", func() (interface{}, error) {
-			return config.Cc.ListEnvironments(orgId)
+			return config.Cc.ListEnvironments(formResult.Org)
 		})
 		result, err := fetch.WithOutput(model)
 		if err != nil {
@@ -140,7 +158,6 @@ func NewEnvCmd() *cobra.Command {
 		Short:   "permentantly remove the environment.",
 		Long:    `The environment destroy command will permanently remove the environment.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
-		Args:    cobra.MinimumNArgs(1),
 		RunE:    envDestroyRun(),
 	}
 

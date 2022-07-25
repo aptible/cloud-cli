@@ -12,6 +12,7 @@ import (
 	"github.com/aptible/cloud-cli/internal/common"
 	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
+	"github.com/aptible/cloud-cli/internal/ui/form"
 )
 
 var (
@@ -63,9 +64,11 @@ func dsCreateRun() common.CobraRunE {
 		orgId := config.Vconfig.GetString("org")
 		envId := config.Vconfig.GetString("env")
 
-		if envId == "" {
-			return fmt.Errorf("must provide env")
+		formResult, err := form.EnvForm(config, orgId, envId)
+		if err != nil {
+			return nil
 		}
+
 		if engine == "" {
 			return fmt.Errorf("must provide engine")
 		}
@@ -93,7 +96,7 @@ func dsCreateRun() common.CobraRunE {
 
 		msg := fmt.Sprintf("creating datastore %s (v%s)", engine, engineVersion)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.CreateAsset(orgId, envId, params)
+			return config.Cc.CreateAsset(formResult.Org, formResult.Env, params)
 		})
 
 		result, err := fetch.WithOutput(model)
@@ -126,9 +129,14 @@ func dsListRun() common.CobraRunE {
 		orgId := config.Vconfig.GetString("org")
 		envId := config.Vconfig.GetString("env")
 
-		msg := fmt.Sprintf("getting datastores with env id: %s and org id: %s", envId, orgId)
+		formResult, err := form.EnvForm(config, orgId, envId)
+		if err != nil {
+			return nil
+		}
+
+		msg := fmt.Sprintf("geting datastores with %+v", formResult)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.ListAssets(orgId, envId)
+			return config.Cc.ListAssets(formResult.Org, formResult.Env)
 		})
 
 		rawResult, err := fetch.WithOutput(model)
