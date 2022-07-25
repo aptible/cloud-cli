@@ -11,6 +11,7 @@ import (
 	"github.com/aptible/cloud-cli/internal/common"
 	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
+	"github.com/aptible/cloud-cli/internal/ui/form"
 )
 
 // organizationsTable - prints out a table of organizations
@@ -47,6 +48,11 @@ func organizationCreateRun() common.CobraRunE {
 		config := common.NewCloudConfig(viper.GetViper())
 		orgId := config.Vconfig.GetString("org")
 
+		formResult, err := form.OrgForm(config, orgId)
+		if err != nil {
+			return err
+		}
+
 		output := make(map[string]interface{})
 		var ou string
 		params := cloudapiclient.OrganizationInput{
@@ -57,7 +63,7 @@ func organizationCreateRun() common.CobraRunE {
 		}
 
 		progressModel := fetch.NewModel("creating organization", func() (interface{}, error) {
-			return config.Cc.CreateOrg(orgId, params)
+			return config.Cc.CreateOrg(formResult.Org, params)
 		})
 		result, err := fetch.WithOutput(progressModel)
 		if err != nil {

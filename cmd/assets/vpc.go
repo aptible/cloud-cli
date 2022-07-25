@@ -12,6 +12,7 @@ import (
 	"github.com/aptible/cloud-cli/internal/common"
 	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
+	"github.com/aptible/cloud-cli/internal/ui/form"
 )
 
 func generateVpcRowFromData(asset cloudapiclient.AssetOutput) table.Row {
@@ -50,8 +51,9 @@ func vpcCreateRun() common.CobraRunE {
 		orgId := config.Vconfig.GetString("org")
 		envId := config.Vconfig.GetString("env")
 
-		if envId == "" {
-			return fmt.Errorf("must provide env")
+		formResult, err := form.EnvForm(config, orgId, envId)
+		if err != nil {
+			return nil
 		}
 
 		name := args[0]
@@ -67,7 +69,7 @@ func vpcCreateRun() common.CobraRunE {
 
 		msg := fmt.Sprintf("creating vpc (%s)", name)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.CreateAsset(orgId, envId, params)
+			return config.Cc.CreateAsset(formResult.Org, formResult.Env, params)
 		})
 
 		result, err := fetch.WithOutput(model)
@@ -100,9 +102,14 @@ func vpcListRun() common.CobraRunE {
 		orgId := config.Vconfig.GetString("org")
 		envId := config.Vconfig.GetString("env")
 
-		msg := fmt.Sprintf("getting vpcs with env id: %s and org id: %s", envId, orgId)
+		formResult, err := form.EnvForm(config, orgId, envId)
+		if err != nil {
+			return nil
+		}
+
+		msg := fmt.Sprintf("getting vpcs with %+v", formResult)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.ListAssets(orgId, envId)
+			return config.Cc.ListAssets(formResult.Org, formResult.Env)
 		})
 
 		rawResult, err := fetch.WithOutput(model)

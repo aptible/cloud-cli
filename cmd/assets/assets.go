@@ -13,6 +13,7 @@ import (
 	uiAsset "github.com/aptible/cloud-cli/internal/ui/asset"
 	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
+	"github.com/aptible/cloud-cli/internal/ui/form"
 )
 
 // colorizeAssetFromStatus - common utility for assets to colorize rows in CLI based on asset status
@@ -83,13 +84,15 @@ func describeAsset() common.CobraRunE {
 		orgId := config.Vconfig.GetString("org")
 		envId := config.Vconfig.GetString("env")
 		assetId := args[0]
-		if envId == "" {
-			return fmt.Errorf("must provide env")
+
+		formResult, err := form.EnvForm(config, orgId, envId)
+		if err != nil {
+			return nil
 		}
 
 		msg := fmt.Sprintf("describing asset %s", assetId)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.DescribeAsset(orgId, envId, assetId)
+			return config.Cc.DescribeAsset(formResult.Org, formResult.Env, assetId)
 		})
 		data, err := fetch.WithOutput(model)
 		if err != nil {
@@ -115,16 +118,17 @@ func destroyAsset() common.CobraRunE {
 		envId := config.Vconfig.GetString("env")
 		assetId := args[0]
 
-		if envId == "" {
-			return fmt.Errorf("must provide env")
+		formResult, err := form.EnvForm(config, orgId, envId)
+		if err != nil {
+			return nil
 		}
 
 		msg := fmt.Sprintf("destroying asset %s (v%s)", engine, engineVersion)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			err := config.Cc.DestroyAsset(orgId, envId, assetId)
+			err := config.Cc.DestroyAsset(formResult.Org, formResult.Env, assetId)
 			return nil, err
 		})
-		_, err := fetch.WithOutput(model)
+		_, err = fetch.WithOutput(model)
 		if err != nil {
 			return err
 		}
@@ -142,6 +146,11 @@ func assetsCreateRun() common.CobraRunE {
 		env := config.Vconfig.GetString("env")
 		assetType := args[0]
 		name := args[1]
+
+		formResult, err := form.EnvForm(config, org, env)
+		if err != nil {
+			return nil
+		}
 
 		if engine == "" {
 			return fmt.Errorf("must provide engine")
@@ -161,7 +170,7 @@ func assetsCreateRun() common.CobraRunE {
 
 		msg := fmt.Sprintf("creating asset %s (v%s)", engine, engineVersion)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.CreateAsset(org, env, params)
+			return config.Cc.CreateAsset(formResult.Org, formResult.Env, params)
 		})
 
 		result, err := fetch.WithOutput(model)
@@ -187,13 +196,14 @@ func assetsListRun() common.CobraRunE {
 		orgId := config.Vconfig.GetString("org")
 		envId := config.Vconfig.GetString("env")
 
-		if envId == "" {
-			return fmt.Errorf("env flag required")
+		formResult, err := form.EnvForm(config, orgId, envId)
+		if err != nil {
+			return nil
 		}
 
-		msg := fmt.Sprintf("getting assets with env id: %s and org id: %s", envId, orgId)
+		msg := fmt.Sprintf("getting assets with %+v", formResult)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.ListAssets(orgId, envId)
+			return config.Cc.ListAssets(formResult.Org, formResult.Env)
 		})
 
 		rawResult, err := fetch.WithOutput(model)
