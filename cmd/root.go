@@ -22,6 +22,20 @@ var (
 	debug      bool
 )
 
+var logo = `
+      ..'...''..             .','.                          ... .',.         .,'.
+    .;oxo;.'cddc'.          .:0NXo.                  .od,  .:kc.'kK:        .lXx.
+  .;oxo:'....,lxxl,.        ,OXk0Kc.   ......'''..  .:KNo....,. 'OXc.'''..  .oNk.   ..''...
+ 'oxo;.,lc.,l:',cxx:.      .xNx'cX0,   'x0xxxxkOOd,.:ONW0d,.l0l.'0W0xxxkOx,..oNk. .cxkxxkOo'.
+ ,l;.,lxOl.;xkd:.'cc.     .lXO, .dNx.  ,0W0:....lKK:.:KNo...dWx.'0WO;..'oX0;.oNk..xXx,..'oKO,
+ ..,lxkkOl.;xOkxd:...    .:KWOlclxXNo. ,0No.    .xWd.,0Xc. .dWx.'0Nl.   .kNo.oNk.:KNOddddx00c.
+ .lxxc;oOl.;xkc;lxd;.    ,ON0xxxxxOXXc.,0Wx.    'ONo.,0Xc. .dWx.'OWd.   ,0Nl.oNk.,0Xo'''';lc'
+ ,oc'..lOl.;xk:..,ll.   .xNO'     .dN0,,0WXxlccoOKx' 'kNOl'.dNx.'OWKxlco0Xd..oNk..:OOdcclk0o.
+ ...  .,:'..;;.   ...   .cl,.      .cl,;0Xdcodxdl,.  .'col'.,l,..:l::odol,. .,l;. ..;lddoc,.
+                                       ,OK:.
+                                       .,;.
+`
+
 var desc = `aptible is a command line interface to the Aptible.com platform.
 
 It allows users to manage authentication, application launch,
@@ -38,7 +52,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "aptible",
 		Short: "aptible is a command line interface to the Aptible.com platform.",
-		Long:  desc,
+		Long:  fmt.Sprintf("%s\n%s", logo, desc),
 	}
 
 	cobra.OnInitialize(initConfig())
