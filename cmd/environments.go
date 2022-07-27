@@ -46,9 +46,10 @@ func environmentsTable(orgOutput interface{}) table.Model {
 func envCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
+		org := config.Vconfig.GetString("org")
 
-		formResult, err := form.OrgForm(config, orgId)
+		formResult := form.FormResult{Org: org}
+		err := form.OrgForm(config, &formResult)
 		if err != nil {
 			return err
 		}
@@ -81,10 +82,11 @@ func envCreateRun() common.CobraRunE {
 func envDestroyRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := args[0]
+		org := config.Vconfig.GetString("org")
+		env := args[0]
 
-		formResult, err := form.EnvForm(config, orgId, envId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.EnvForm(config, &formResult)
 		if err != nil {
 			return err
 		}
@@ -97,7 +99,7 @@ func envDestroyRun() common.CobraRunE {
 		err = fetch.Any(model)
 
 		// does not print anything, no table to print here
-		fmt.Printf("Destroyed environment: %s\n", envId)
+		fmt.Printf("Destroyed environment: %s\n", env)
 		return err
 	}
 }
@@ -106,9 +108,10 @@ func envDestroyRun() common.CobraRunE {
 func envListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
+		org := config.Vconfig.GetString("org")
 
-		formResult, err := form.OrgForm(config, orgId)
+		formResult := form.FormResult{Org: org}
+		err := form.OrgForm(config, &formResult)
 		if err != nil {
 			return err
 		}

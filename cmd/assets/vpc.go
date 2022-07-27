@@ -2,7 +2,6 @@ package assets
 
 import (
 	"fmt"
-	"strings"
 
 	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/evertras/bubble-table/table"
@@ -48,10 +47,11 @@ func vpcTable(orgOutput interface{}) table.Model {
 func vpcCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := config.Vconfig.GetString("env")
+		org := config.Vconfig.GetString("org")
+		env := config.Vconfig.GetString("env")
 
-		formResult, err := form.EnvForm(config, orgId, envId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.EnvForm(config, &formResult)
 		if err != nil {
 			return nil
 		}
@@ -99,10 +99,11 @@ func vpcDestroyRun() common.CobraRunE {
 func vpcListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := config.Vconfig.GetString("env")
+		org := config.Vconfig.GetString("org")
+		env := config.Vconfig.GetString("env")
 
-		formResult, err := form.EnvForm(config, orgId, envId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.EnvForm(config, &formResult)
 		if err != nil {
 			return nil
 		}
@@ -121,16 +122,8 @@ func vpcListRun() common.CobraRunE {
 			fmt.Println("No vpcs found.")
 			return nil
 		}
-		dsAssetTypes := []string{"vpc"}
 		unfilteredResults := rawResult.Result.([]cloudapiclient.AssetOutput)
-		filteredResults := make([]cloudapiclient.AssetOutput, 0)
-		for _, result := range unfilteredResults {
-			for _, acceptedDsType := range dsAssetTypes {
-				if strings.Contains(result.Asset, acceptedDsType) {
-					filteredResults = append(filteredResults, result)
-				}
-			}
-		}
+		filteredResults := common.FilterAssetsByType(unfilteredResults, []string{"vpc"})
 		if len(filteredResults) == 0 {
 			fmt.Println("No vpcs found.")
 			return nil

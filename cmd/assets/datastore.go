@@ -61,10 +61,11 @@ func dataStoreTable(orgOutput interface{}) table.Model {
 func dsCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := config.Vconfig.GetString("env")
+		org := config.Vconfig.GetString("org")
+		env := config.Vconfig.GetString("env")
 
-		formResult, err := form.EnvForm(config, orgId, envId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.EnvForm(config, &formResult)
 		if err != nil {
 			return nil
 		}
@@ -126,10 +127,11 @@ func dsDestroyRun() common.CobraRunE {
 func dsListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := config.Vconfig.GetString("env")
+		org := config.Vconfig.GetString("org")
+		env := config.Vconfig.GetString("env")
 
-		formResult, err := form.EnvForm(config, orgId, envId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.EnvForm(config, &formResult)
 		if err != nil {
 			return nil
 		}
