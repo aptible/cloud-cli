@@ -6,9 +6,16 @@ import (
 )
 
 type FormResult struct {
-	Org string
-	Env string
+	Org           string
+	Env           string
+	AssetType     string
+	AssetName     string
+	VpcName       string
+	Engine        string
+	EngineVersion string
 }
+
+type FormFn func(*common.CloudConfig, *FormResult) error
 
 type FormOption struct {
 	Value string

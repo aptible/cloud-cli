@@ -18,6 +18,7 @@ type CloudClient interface {
 	CreateOrg(orgId string, params cloudapiclient.OrganizationInput) (*cloudapiclient.OrganizationOutput, error)
 	FindOrg(orgId string) (*cloudapiclient.OrganizationOutput, error)
 
+	ListAssetBundles(orgId string, envId string) ([]cloudapiclient.AssetBundle, error)
 	CreateAsset(orgId string, envId string, params cloudapiclient.AssetInput) (*cloudapiclient.AssetOutput, error)
 	ListAssets(orgId string, envId string) ([]cloudapiclient.AssetOutput, error)
 	DescribeAsset(orgId string, envId string, assetId string) (*cloudapiclient.AssetOutput, error)

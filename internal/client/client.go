@@ -142,3 +142,10 @@ func (c *client) ListOperationsByAsset(orgId string, assetId string) ([]cloudapi
 	c.HandleResponse(r)
 	return ops, err
 }
+
+func (c *client) ListAssetBundles(orgId string, envId string) ([]cloudapiclient.AssetBundle, error) {
+	request := c.apiClient.EnvironmentsApi.GetEnvironmentAllowedAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetBundlesGet(c.ctx, envId, orgId)
+	bundles, r, err := request.Execute()
+	c.HandleResponse(r)
+	return bundles, err
+}
