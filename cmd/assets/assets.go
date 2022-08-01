@@ -30,6 +30,16 @@ func colorizeAssetFromStatus(asset cloudapiclient.AssetOutput, row table.Row) ta
 	}
 }
 
+type AssetOptions struct {
+	AssetName     string
+	AssetType     string
+	VpcName       string
+	Engine        string
+	EngineVersion string
+}
+
+var assetOptions = AssetOptions{}
+
 func getAssetName(asset cloudapiclient.AssetOutput) string {
 	assetName := asset.CurrentAssetParameters.Data["name"]
 	if assetName == "" {
@@ -81,11 +91,12 @@ func assetTable(orgOutput interface{}) table.Model {
 func describeAsset() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := config.Vconfig.GetString("env")
+		org := config.Vconfig.GetString("org")
+		env := config.Vconfig.GetString("env")
 		assetId := args[0]
 
-		formResult, err := form.EnvForm(config, orgId, envId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.EnvForm(config, &formResult)
 		if err != nil {
 			return nil
 		}
@@ -100,7 +111,7 @@ func describeAsset() common.CobraRunE {
 		}
 		asset := data.Result.(*cloudapiclient.AssetOutput)
 
-		uiAsset.Run(config, asset)
+		uiAsset.Run(config, formResult.Org, asset)
 
 		return nil
 	}
@@ -114,11 +125,12 @@ func assetDescribeRun() common.CobraRunE {
 func destroyAsset() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := config.Vconfig.GetString("env")
+		org := config.Vconfig.GetString("org")
+		env := config.Vconfig.GetString("env")
 		assetId := args[0]
 
-		formResult, err := form.EnvForm(config, orgId, envId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.EnvForm(config, &formResult)
 		if err != nil {
 			return nil
 		}
@@ -144,31 +156,35 @@ func assetsCreateRun() common.CobraRunE {
 		config := common.NewCloudConfig(viper.GetViper())
 		org := config.Vconfig.GetString("org")
 		env := config.Vconfig.GetString("env")
-		assetType := args[0]
-		name := args[1]
 
-		formResult, err := form.EnvForm(config, org, env)
+		formResult := form.FormResult{
+			Org:           org,
+			Env:           env,
+			AssetType:     assetOptions.AssetType,
+			AssetName:     assetOptions.AssetName,
+			Engine:        assetOptions.Engine,
+			EngineVersion: assetOptions.EngineVersion,
+		}
+		err := form.AssetCreateForm(config, &formResult)
 		if err != nil {
-			return nil
-		}
-
-		if engine == "" {
-			return fmt.Errorf("must provide engine")
-		}
-		if engineVersion == "" {
-			return fmt.Errorf("must provide engine version")
+			return err
 		}
 
 		vars := map[string]interface{}{
-			"name": name,
+			"name":           formResult.AssetName,
+			"engine":         formResult.Engine,
+			"engine_version": formResult.EngineVersion,
+			"vpc_name":       formResult.VpcName,
 		}
+		// TODO: asset type => what's required here is not the same
+		_type := strings.Replace(formResult.AssetType, "aws/", "", 1)
 		params := cloudapiclient.AssetInput{
-			Asset:           fmt.Sprintf("aws__%s__latest", assetType),
+			Asset:           fmt.Sprintf("aws__%s__latest", _type),
 			AssetVersion:    "latest",
 			AssetParameters: vars,
 		}
 
-		msg := fmt.Sprintf("creating asset %s (v%s)", engine, engineVersion)
+		msg := fmt.Sprintf("creating asset %s (v%s)", formResult.Engine, formResult.EngineVersion)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
 			return config.Cc.CreateAsset(formResult.Org, formResult.Env, params)
 		})
@@ -193,12 +209,13 @@ func assetsDestroyRun() common.CobraRunE {
 func assetsListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := config.Vconfig.GetString("env")
+		org := config.Vconfig.GetString("org")
+		env := config.Vconfig.GetString("env")
 
-		formResult, err := form.EnvForm(config, orgId, envId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.EnvForm(config, &formResult)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		msg := fmt.Sprintf("getting assets with %+v", formResult)
@@ -246,7 +263,6 @@ func NewAssetCmd() *cobra.Command {
 		Short:   "provision a new asset.",
 		Long:    `The asset create command will provision a new asset.`,
 		Aliases: []string{"c", "deploy"},
-		Args:    cobra.MinimumNArgs(2),
 		RunE:    assetsCreateRun(),
 	}
 
@@ -275,7 +291,11 @@ func NewAssetCmd() *cobra.Command {
 		RunE:    assetDescribeRun(),
 	}
 
-	assetCreateCmd.Flags().StringVarP(&vpcName, "vpc-name", "", "", "asset variables map")
+	assetCreateCmd.Flags().StringVarP(&assetOptions.VpcName, "vpc-name", "", "", "vpc name to create the asset in")
+	assetCreateCmd.Flags().StringVarP(&assetOptions.AssetName, "asset-name", "", "", "asset name")
+	assetCreateCmd.Flags().StringVarP(&assetOptions.AssetType, "asset-type", "", "", "asset type")
+	assetCreateCmd.Flags().StringVarP(&assetOptions.Engine, "engine", "", "", "engine")
+	assetCreateCmd.Flags().StringVarP(&assetOptions.EngineVersion, "engine-version", "", "", "engine version")
 
 	assetCmd.AddCommand(assetCreateCmd)
 	assetCmd.AddCommand(assetDestroyCmd)

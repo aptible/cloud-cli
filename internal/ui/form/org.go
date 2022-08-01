@@ -16,7 +16,7 @@ func NewOrgProp() *SubSchema {
 }
 
 func CreateOrgOptions() LoadOptionsFn {
-	var options []list.Item
+	options := []list.Item{}
 	return func(config *common.CloudConfig) ([]list.Item, error) {
 		orgs, err := config.Cc.ListOrgs()
 		if err != nil {
@@ -29,22 +29,20 @@ func CreateOrgOptions() LoadOptionsFn {
 	}
 }
 
-func OrgForm(config *common.CloudConfig, orgId string) (FormResult, error) {
-	results := FormResult{
-		Org: orgId,
+func OrgForm(config *common.CloudConfig, results *FormResult) error {
+	if results.Org != "" {
+		return nil
 	}
 
-	if results.Org == "" {
-		prop := NewOrgProp()
-		result, err := Run(NewModel(config, prop))
-		if err != nil {
-			return results, err
-		}
-		if result == "" {
-			return results, fmt.Errorf("You must select an organization")
-		}
-		results.Org = result
+	prop := NewOrgProp()
+	result, err := Run(NewModel(config, prop))
+	if err != nil {
+		return err
 	}
+	if result == "" {
+		return fmt.Errorf("You must select an organization")
+	}
+	results.Org = result
 
-	return results, nil
+	return nil
 }
