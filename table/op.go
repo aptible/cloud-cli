@@ -6,19 +6,21 @@ import (
 	"github.com/evertras/bubble-table/table"
 )
 
-// colorizeAssetFromStatus - common utility for assets to colorize rows in CLI based on asset status
-/* func colorizeOperationFromStatus(asset cloudapiclient.OperationOutput, row table.Row) table.Row {
-	switch *asset.Status.Get() {
-	case cloudapiclient.ASSETSTATUS_DEPLOYED:
+// colorizeOperationFromStatus - common utility for assets to colorize rows in CLI based on asset status
+func colorizeOperationFromStatus(operation cloudapiclient.OperationOutput, row table.Row) table.Row {
+	switch *operation.Status.Get() {
+	case cloudapiclient.OPERATIONSTATUS_COMPLETE:
 		return row.WithStyle(uiCommon.ActiveRowStyle())
-	case cloudapiclient.PENDING, cloudapiclient.REQUESTED, cloudapiclient.IN_PROGRESS, cloudapiclient.PAUSED:
+	case cloudapiclient.OPERATIONSTATUS_IN_PROGRESS,
+		cloudapiclient.OPERATIONSTATUS_PAUSED,
+		cloudapiclient.OPERATIONSTATUS_PENDING:
 		return row.WithStyle(uiCommon.PendingRowStyle())
-	case cloudapiclient.CANCELED, cloudapiclient.FAILED:
+	case cloudapiclient.OPERATIONSTATUS_CANCELED, cloudapiclient.OPERATIONSTATUS_FAILED:
 		return row.WithStyle(uiCommon.DisabledRowStyle())
 	default:
 		return row.WithStyle(uiCommon.DefaultRowStyle())
 	}
-} */
+}
 
 // generateAssetRowFromData - generate a common table row for assets
 func generateOpRowFromData(op cloudapiclient.OperationOutput) table.Row {
@@ -27,7 +29,7 @@ func generateOpRowFromData(op cloudapiclient.OperationOutput) table.Row {
 		"type":   *op.OperationType.Get(),
 		"status": *op.Status.Get(),
 	})
-	return row
+	return colorizeOperationFromStatus(op, row)
 }
 
 // dataStoreTable - prints out a table of operations

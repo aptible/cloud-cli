@@ -13,11 +13,14 @@ import (
 // colorizeAssetFromStatus - common utility for assets to colorize rows in CLI based on asset status
 func colorizeAssetFromStatus(asset cloudapiclient.AssetOutput, row table.Row) table.Row {
 	switch asset.Status {
-	case "DEPLOYED":
+	case cloudapiclient.ASSETSTATUS_DEPLOYED:
 		return row.WithStyle(uiCommon.ActiveRowStyle())
-	case "PENDING", "DEPLOYING", "DESTROYING", "REQUESTED":
+	case cloudapiclient.ASSETSTATUS_DEPLOYING,
+		cloudapiclient.ASSETSTATUS_PENDING,
+		cloudapiclient.ASSETSTATUS_DESTROYING,
+		cloudapiclient.ASSETSTATUS_REQUESTED:
 		return row.WithStyle(uiCommon.PendingRowStyle())
-	case "DESTROYED":
+	case cloudapiclient.ASSETSTATUS_DESTROYED:
 		return row.WithStyle(uiCommon.DisabledRowStyle())
 	default:
 		return row.WithStyle(uiCommon.DefaultRowStyle())
