@@ -8,6 +8,7 @@ import (
 	"github.com/aptible/cloud-cli/internal/ui/loader"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -17,7 +18,7 @@ type loadedOptionsMsg struct {
 	Options []list.Item
 }
 
-type itemSelectedMsg struct {
+type valueEnteredMsg struct {
 	Value string
 }
 
@@ -27,7 +28,8 @@ const (
 	statusInit status = iota
 	statusReady
 	statusLoadingOptions
-	statusItemSelected
+	statusValueEntered
+	statusUserInput
 )
 
 type Model struct {
@@ -35,6 +37,7 @@ type Model struct {
 	config   *common.CloudConfig
 	schema   *SubSchema
 	list     list.Model
+	input    textinput.Model
 	spinner  loader.Model
 	status   status
 	metaDesc string
@@ -43,6 +46,10 @@ type Model struct {
 }
 
 func NewModel(config *common.CloudConfig, schema *SubSchema) *Model {
+	ti := textinput.New()
+	ti.CharLimit = 156
+	ti.Width = 50
+
 	model := &Model{
 		styles:  uiCommon.DefaultStyles(),
 		spinner: loader.NewModel("fetching resources"),
@@ -50,6 +57,7 @@ func NewModel(config *common.CloudConfig, schema *SubSchema) *Model {
 		schema:  schema,
 		status:  statusInit,
 		list:    list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0),
+		input:   ti,
 	}
 	model.list.Title = schema.Title
 	return model
@@ -66,9 +74,9 @@ func (m Model) fetchOptions() tea.Cmd {
 	}
 }
 
-func itemSelected(val string) tea.Cmd {
+func valueEntered(val string) tea.Cmd {
 	return func() tea.Msg {
-		return itemSelectedMsg{Value: val}
+		return valueEnteredMsg{Value: val}
 	}
 }
 
@@ -85,12 +93,19 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		case tea.KeyEnter:
-			val := ""
-			if !m.list.SettingFilter() {
-				if i, ok := m.list.SelectedItem().(FormOption); ok {
-					val = i.Value
+			if m.schema.Type == "input" {
+				return m, valueEntered(m.input.Value())
+			} else if m.schema.Type == "select" {
+				// we ask users to press enter when applying a filter
+				// which means we need to check to make sure that's not
+				// why they hit enter
+				if !m.list.SettingFilter() {
+					val := ""
+					if i, ok := m.list.SelectedItem().(FormOption); ok {
+						val = i.Value
+					}
+					return m, valueEntered(val)
 				}
-				return m, itemSelected(val)
 			}
 		}
 	case tea.WindowSizeMsg:
@@ -102,13 +117,13 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 				val = i.Value
 			}
 			m.metaDesc = " (only option available)"
-			return m, itemSelected(val)
+			return m, valueEntered(val)
 		} else {
 			m.status = statusReady
 			m.list.SetItems(msg.Options)
 		}
-	case itemSelectedMsg:
-		m.status = statusItemSelected
+	case valueEnteredMsg:
+		m.status = statusValueEntered
 		m.Result = msg.Value
 		return m, tea.Quit
 	case spinner.TickMsg:
@@ -127,9 +142,18 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			m.status = statusLoadingOptions
 			return m, m.fetchOptions()
 		}
+		if m.schema.Type == "input" {
+			m.input.Focus()
+			m.status = statusUserInput
+		}
 	}
 
-	m.list, cmd = m.list.Update(message)
+	switch m.schema.Type {
+	case "input":
+		m.input, cmd = m.input.Update(message)
+	case "select":
+		m.list, cmd = m.list.Update(message)
+	}
 	return m, cmd
 }
 
@@ -142,19 +166,17 @@ func (m Model) View() string {
 
 	if m.status == statusReady && m.schema.Type == "select" {
 		s += fmt.Sprintf("\n%s", m.list.View())
-	}
-
-	if m.status == statusLoadingOptions {
+	} else if m.status == statusLoadingOptions {
 		s += m.spinner.View()
-	}
-
-	if m.status == statusItemSelected {
+	} else if m.status == statusValueEntered {
 		s += fmt.Sprintf(
 			"%s: %s%s\n",
 			m.schema.Title,
 			m.styles.SuccessText.Render(m.Result),
 			m.styles.InfoText.Render(m.metaDesc),
 		)
+	} else if m.status == statusUserInput {
+		s += fmt.Sprintf("%s: %s", m.schema.Title, m.input.View())
 	}
 
 	return s

@@ -7,9 +7,9 @@ import (
 )
 
 // colorizeAssetFromStatus - common utility for assets to colorize rows in CLI based on asset status
-func colorizeOperationFromStatus(asset cloudapiclient.OperationOutput, row table.Row) table.Row {
+/* func colorizeOperationFromStatus(asset cloudapiclient.OperationOutput, row table.Row) table.Row {
 	switch *asset.Status.Get() {
-	case cloudapiclient.COMPLETE:
+	case cloudapiclient.ASSETSTATUS_DEPLOYED:
 		return row.WithStyle(uiCommon.ActiveRowStyle())
 	case cloudapiclient.PENDING, cloudapiclient.REQUESTED, cloudapiclient.IN_PROGRESS, cloudapiclient.PAUSED:
 		return row.WithStyle(uiCommon.PendingRowStyle())
@@ -18,7 +18,7 @@ func colorizeOperationFromStatus(asset cloudapiclient.OperationOutput, row table
 	default:
 		return row.WithStyle(uiCommon.DefaultRowStyle())
 	}
-}
+} */
 
 // generateAssetRowFromData - generate a common table row for assets
 func generateOperationRowFromData(op cloudapiclient.OperationOutput) table.Row {
@@ -27,7 +27,7 @@ func generateOperationRowFromData(op cloudapiclient.OperationOutput) table.Row {
 		"type":   *op.OperationType.Get(),
 		"status": *op.Status.Get(),
 	})
-	return colorizeOperationFromStatus(op, row)
+	return row
 }
 
 // dataStoreTable - prints out a table of operations

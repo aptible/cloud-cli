@@ -59,63 +59,13 @@ func dataStoreTable(orgOutput interface{}) table.Model {
 
 // dsCreateRun - create a datastore
 func dsCreateRun() common.CobraRunE {
-	return func(cmd *cobra.Command, args []string) error {
-		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := config.Vconfig.GetString("env")
-
-		formResult, err := form.EnvForm(config, orgId, envId)
-		if err != nil {
-			return nil
-		}
-
-		if engine == "" {
-			return fmt.Errorf("must provide engine")
-		}
-		if engineVersion == "" {
-			return fmt.Errorf("must provide engine version")
-		}
-		if name == "" {
-			return fmt.Errorf("must provide name")
-		}
-		if vpcName == "" {
-			return fmt.Errorf("must provide vpc-name")
-		}
-
-		vars := map[string]interface{}{
-			"name":           name,
-			"engine":         engine,
-			"engine_version": engineVersion,
-			"vpc_name":       vpcName,
-		}
-		params := cloudapiclient.AssetInput{
-			Asset:           "aws__rds__latest",
-			AssetVersion:    "latest",
-			AssetParameters: vars,
-		}
-
-		msg := fmt.Sprintf("creating datastore %s (v%s)", engine, engineVersion)
-		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.CreateAsset(formResult.Org, formResult.Env, params)
-		})
-
-		result, err := fetch.WithOutput(model)
-		if err != nil {
-			return err
-		}
-		datastoreTable := vpcTable(result.Result.(*cloudapiclient.AssetOutput))
-		// TODO - print with tea
-		fmt.Println("Datastore(s) Created:")
-		fmt.Println(datastoreTable.View())
-
-		return nil
-	}
+	return assetsCreateRun()
 }
 
 // dsDescribeRun - describe datastore
-/* func dsDescribeRun() common.CobraRunE {
+func dsDescribeRun() common.CobraRunE {
 	return describeAsset()
-} */
+}
 
 // dsDestroyRun - destroy datastore
 func dsDestroyRun() common.CobraRunE {
@@ -126,10 +76,11 @@ func dsDestroyRun() common.CobraRunE {
 func dsListRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
-		envId := config.Vconfig.GetString("env")
+		org := config.Vconfig.GetString("org")
+		env := config.Vconfig.GetString("env")
 
-		formResult, err := form.EnvForm(config, orgId, envId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.EnvForm(config, &formResult)
 		if err != nil {
 			return nil
 		}
@@ -212,7 +163,7 @@ func NewDatastoreCmd() *cobra.Command {
 		Short:   "describe datastore",
 		Long:    `The datastore show command will provide more detail about a datastore`,
 		Aliases: []string{"show"},
-		RunE:    dsListRun(),
+		RunE:    dsDescribeRun(),
 	}
 
 	dsCreateCmd.Flags().StringVarP(&engine, "engine", "e", "", "the datastore engine, e.g. postgres, mysql, etc.")

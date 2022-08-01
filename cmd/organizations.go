@@ -46,9 +46,10 @@ func organizationsTable(orgOutput interface{}) table.Model {
 func organizationCreateRun() common.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := common.NewCloudConfig(viper.GetViper())
-		orgId := config.Vconfig.GetString("org")
+		org := config.Vconfig.GetString("org")
 
-		formResult, err := form.OrgForm(config, orgId)
+		formResult := form.FormResult{Org: org, Env: env}
+		err := form.OrgForm(config, &formResult)
 		if err != nil {
 			return err
 		}

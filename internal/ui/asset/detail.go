@@ -22,6 +22,7 @@ const (
 
 type Model struct {
 	config   *common.CloudConfig
+	orgId    string
 	asset    *cloudapiclient.AssetOutput
 	ops      []cloudapiclient.OperationOutput
 	fetchOps fetch.Model
@@ -40,8 +41,9 @@ func GetAssetName(asset *cloudapiclient.AssetOutput) string {
 	return assetName.(string)
 }
 
-func NewModel(config *common.CloudConfig, asset *cloudapiclient.AssetOutput) *Model {
+func NewModel(config *common.CloudConfig, orgId string, asset *cloudapiclient.AssetOutput) *Model {
 	m := &Model{
+		orgId:  orgId,
 		asset:  asset,
 		styles: uiCommon.DefaultStyles(),
 		status: statusInit,
@@ -51,8 +53,8 @@ func NewModel(config *common.CloudConfig, asset *cloudapiclient.AssetOutput) *Mo
 	return m
 }
 
-func Run(config *common.CloudConfig, asset *cloudapiclient.AssetOutput) {
-	p := tea.NewProgram(NewModel(config, asset), tea.WithAltScreen())
+func Run(config *common.CloudConfig, orgId string, asset *cloudapiclient.AssetOutput) {
+	p := tea.NewProgram(NewModel(config, orgId, asset), tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}
@@ -88,8 +90,7 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		m.status = statusReady
 		opMsg := "refreshing"
 		m.fetchOps = fetch.NewModelLooper(opMsg, 3*time.Second, func() (interface{}, error) {
-			org := m.config.Vconfig.GetString("org")
-			return m.config.Cc.ListOperationsByAsset(org, m.asset.Id)
+			return m.config.Cc.ListOperationsByAsset(m.orgId, m.asset.Id)
 		})
 		return m, m.fetchOps.Init()
 	}

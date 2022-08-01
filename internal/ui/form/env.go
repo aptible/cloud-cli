@@ -7,42 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 )
 
-func NewEnvProp(orgId string) *SubSchema {
-	return &SubSchema{
-		Type:        "select",
-		Title:       "Select an environment",
-		LoadOptions: CreateEnvOptions(orgId),
-	}
-}
-
-func EnvForm(config *common.CloudConfig, orgId string, envId string) (FormResult, error) {
-	results := FormResult{
-		Org: orgId,
-		Env: envId,
-	}
-
-	results, err := OrgForm(config, results.Org)
-	if err != nil {
-		return results, err
-	}
-
-	if results.Env == "" {
-		prop := NewEnvProp(results.Org)
-		result, err := Run(NewModel(config, prop))
-		if err != nil {
-			return results, err
-		}
-		if result == "" {
-			return results, fmt.Errorf("You must select an environment")
-		}
-		results.Env = result
-	}
-
-	return results, nil
-}
-
 func CreateEnvOptions(orgId string) LoadOptionsFn {
-	var options []list.Item
+	options := []list.Item{}
 	return func(config *common.CloudConfig) ([]list.Item, error) {
 		orgs, err := config.Cc.ListEnvironments(orgId)
 		if err != nil {
@@ -53,4 +19,34 @@ func CreateEnvOptions(orgId string) LoadOptionsFn {
 		}
 		return options, nil
 	}
+}
+
+func NewEnvProp(orgId string) *SubSchema {
+	return &SubSchema{
+		Type:        "select",
+		Title:       "Select an environment",
+		LoadOptions: CreateEnvOptions(orgId),
+	}
+}
+
+func EnvForm(config *common.CloudConfig, results *FormResult) error {
+	if err := OrgForm(config, results); err != nil {
+		return err
+	}
+
+	if results.Env != "" {
+		return nil
+	}
+
+	prop := NewEnvProp(results.Org)
+	result, err := Run(NewModel(config, prop))
+	if err != nil {
+		return err
+	}
+	if result == "" {
+		return fmt.Errorf("You must select an environment")
+	}
+	results.Env = result
+
+	return nil
 }
