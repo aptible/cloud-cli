@@ -4,44 +4,14 @@ import (
 	"fmt"
 
 	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
-	"github.com/evertras/bubble-table/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/aptible/cloud-cli/internal/common"
-	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
 	"github.com/aptible/cloud-cli/internal/ui/form"
+	"github.com/aptible/cloud-cli/table"
 )
-
-func generateVpcRowFromData(asset cloudapiclient.AssetOutput) table.Row {
-	row := table.NewRow(table.RowData{
-		"id":     asset.Id,
-		"status": asset.Status,
-		"name":   asset.CurrentAssetParameters.Data["name"],
-	})
-	return colorizeAssetFromStatus(asset, row)
-}
-
-// dataStoreTable - prints out a table of datastores
-func vpcTable(orgOutput interface{}) table.Model {
-	rows := make([]table.Row, 0)
-
-	switch data := orgOutput.(type) {
-	case []cloudapiclient.AssetOutput:
-		for _, asset := range data {
-			rows = append(rows, generateVpcRowFromData(asset))
-		}
-	case *cloudapiclient.AssetOutput:
-		rows = append(rows, generateVpcRowFromData(*data))
-	}
-
-	return table.New([]table.Column{
-		table.NewColumn("id", "Asset Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
-		table.NewColumn("status", "Status", 40).WithStyle(uiCommon.DefaultRowStyle()),
-		table.NewColumn("name", "Name", 40).WithStyle(uiCommon.DefaultRowStyle()),
-	}).WithRows(rows)
-}
 
 // dsCreateRun - create a datastore
 func vpcCreateRun() common.CobraRunE {
@@ -76,7 +46,7 @@ func vpcCreateRun() common.CobraRunE {
 		if err != nil {
 			return err
 		}
-		vpcTable := vpcTable(result.Result.(*cloudapiclient.AssetOutput))
+		vpcTable := table.AssetTable(result.Result.(*cloudapiclient.AssetOutput))
 		// TODO - print with tea
 		fmt.Println("VPC(s) Created:")
 		fmt.Println(vpcTable.View())
@@ -129,7 +99,7 @@ func vpcListRun() common.CobraRunE {
 			return nil
 		}
 
-		vpcTable := vpcTable(filteredResults)
+		vpcTable := table.AssetTable(filteredResults)
 		// TODO - print with tea
 		fmt.Println("VPC(s) List")
 		fmt.Println(vpcTable.View())

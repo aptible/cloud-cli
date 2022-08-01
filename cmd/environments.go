@@ -4,43 +4,14 @@ import (
 	"fmt"
 
 	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
-	"github.com/evertras/bubble-table/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/aptible/cloud-cli/internal/common"
-	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
 	"github.com/aptible/cloud-cli/internal/ui/form"
+	"github.com/aptible/cloud-cli/table"
 )
-
-// environmentsTable - prints out a table of environments
-func environmentsTable(orgOutput interface{}) table.Model {
-	rows := make([]table.Row, 0)
-
-	switch data := orgOutput.(type) {
-	case []cloudapiclient.EnvironmentOutput:
-		for _, env := range data {
-			rows = append(rows, table.NewRow(table.RowData{
-				"id":             env.Id,
-				"name":           env.Name,
-				"aws_account_id": *env.AwsAccountId,
-			}))
-		}
-	case *cloudapiclient.EnvironmentOutput:
-		rows = append(rows, table.NewRow(table.RowData{
-			"id":             data.Id,
-			"name":           data.Name,
-			"aws_account_id": *data.AwsAccountId,
-		}))
-	}
-
-	return table.New([]table.Column{
-		table.NewColumn("id", "Environment Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
-		table.NewColumn("name", "Environment Name", 40).WithStyle(uiCommon.DefaultRowStyle()),
-		table.NewColumn("aws_account_id", "AWS Account Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
-	}).WithRows(rows)
-}
 
 // envCreateRun - create an environment
 func envCreateRun() common.CobraRunE {
@@ -70,7 +41,7 @@ func envCreateRun() common.CobraRunE {
 			return err
 		}
 
-		envTable := environmentsTable(result.Result.(*cloudapiclient.EnvironmentOutput))
+		envTable := table.EnvTable(result.Result.(*cloudapiclient.EnvironmentOutput))
 		// TODO - print with tea
 		fmt.Println("Created Environment(s)")
 		fmt.Println(envTable.View())
@@ -129,7 +100,7 @@ func envListRun() common.CobraRunE {
 			return nil
 		}
 
-		envTable := environmentsTable(result.Result.([]cloudapiclient.EnvironmentOutput))
+		envTable := table.EnvTable(result.Result.([]cloudapiclient.EnvironmentOutput))
 		// TODO - print with tea
 		fmt.Println("Environment(s) List")
 		fmt.Println(envTable.View())
