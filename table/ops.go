@@ -21,7 +21,7 @@ import (
 } */
 
 // generateAssetRowFromData - generate a common table row for assets
-func generateOperationRowFromData(op cloudapiclient.OperationOutput) table.Row {
+func generateOpRowFromData(op cloudapiclient.OperationOutput) table.Row {
 	row := table.NewRow(table.RowData{
 		"id":     op.Id,
 		"type":   *op.OperationType.Get(),
@@ -31,16 +31,16 @@ func generateOperationRowFromData(op cloudapiclient.OperationOutput) table.Row {
 }
 
 // dataStoreTable - prints out a table of operations
-func OperationTable(orgOutput interface{}) table.Model {
+func OpTable(orgOutput interface{}) table.Model {
 	rows := make([]table.Row, 0)
 
 	switch data := orgOutput.(type) {
 	case []cloudapiclient.OperationOutput:
 		for _, op := range data {
-			rows = append(rows, generateOperationRowFromData(op))
+			rows = append(rows, generateOpRowFromData(op))
 		}
 	case *cloudapiclient.OperationOutput:
-		rows = append(rows, generateOperationRowFromData(*data))
+		rows = append(rows, generateOpRowFromData(*data))
 	}
 
 	return table.New([]table.Column{
