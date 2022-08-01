@@ -129,7 +129,7 @@ func (m Model) bioView() string {
 }
 
 func (m Model) opsTableView() string {
-	tbl := render.OperationTable(m.ops)
+	tbl := render.OpTable(m.ops)
 	s := "\n\n\n"
 	s += m.styles.Logo.Render("Operations")
 	s += "  " + m.fetchOps.View()

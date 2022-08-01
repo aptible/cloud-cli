@@ -23,6 +23,15 @@ func TeaDebug(config *CloudConfig) func() {
 	}
 }
 
+func GetAssetName(asset cloudapiclient.AssetOutput) string {
+	assetName := asset.CurrentAssetParameters.Data["name"]
+	if assetName == "" {
+		assetName = "N/A"
+	}
+
+	return assetName.(string)
+}
+
 func FilterAssetsByType(assets []cloudapiclient.AssetOutput, types []string) []cloudapiclient.AssetOutput {
 	filteredResults := make([]cloudapiclient.AssetOutput, 0)
 	for _, result := range assets {

@@ -5,14 +5,13 @@ import (
 	"strings"
 
 	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
-	"github.com/evertras/bubble-table/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/aptible/cloud-cli/internal/common"
-	uiCommon "github.com/aptible/cloud-cli/internal/ui/common"
 	"github.com/aptible/cloud-cli/internal/ui/fetch"
 	"github.com/aptible/cloud-cli/internal/ui/form"
+	"github.com/aptible/cloud-cli/table"
 )
 
 var (
@@ -21,41 +20,6 @@ var (
 	name          string
 	vpcName       string
 )
-
-func generateDatastoreRowFromData(asset cloudapiclient.AssetOutput) table.Row {
-	row := table.NewRow(table.RowData{
-		"id":             asset.Id,
-		"status":         asset.Status,
-		"name":           asset.CurrentAssetParameters.Data["name"],
-		"engine":         asset.CurrentAssetParameters.Data["engine"],
-		"engine_version": asset.CurrentAssetParameters.Data["engine_version"],
-		"vpc_name":       asset.CurrentAssetParameters.Data["vpc_name"],
-	})
-	return colorizeAssetFromStatus(asset, row)
-}
-
-// dataStoreTable - prints out a table of datastores
-func dataStoreTable(orgOutput interface{}) table.Model {
-	rows := make([]table.Row, 0)
-
-	switch data := orgOutput.(type) {
-	case []cloudapiclient.AssetOutput:
-		for _, asset := range data {
-			rows = append(rows, generateDatastoreRowFromData(asset))
-		}
-	case *cloudapiclient.AssetOutput:
-		rows = append(rows, generateDatastoreRowFromData(*data))
-	}
-
-	return table.New([]table.Column{
-		table.NewColumn("id", "Id", 40).WithStyle(uiCommon.DefaultRowStyle()),
-		table.NewColumn("status", "Status", 40).WithStyle(uiCommon.DefaultRowStyle()),
-		table.NewColumn("name", "Name", 20).WithStyle(uiCommon.DefaultRowStyle()),
-		table.NewColumn("engine", "Engine", 20).WithStyle(uiCommon.DefaultRowStyle()),
-		table.NewColumn("engine_version", "Engine Version", 20).WithStyle(uiCommon.DefaultRowStyle()),
-		table.NewColumn("vpc_name", "VPC Name", 20).WithStyle(uiCommon.DefaultRowStyle()),
-	}).WithRows(rows)
-}
 
 // dsCreateRun - create a datastore
 func dsCreateRun() common.CobraRunE {
@@ -116,7 +80,7 @@ func dsListRun() common.CobraRunE {
 			return nil
 		}
 
-		dsTable := dataStoreTable(filteredResults)
+		dsTable := table.AssetTable(filteredResults)
 		// TODO - print with tea
 		fmt.Println("Datastore(s) List")
 		fmt.Println(dsTable.View())
