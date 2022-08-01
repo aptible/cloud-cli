@@ -148,8 +148,12 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.list, cmd = m.list.Update(message)
-	m.input, cmd = m.input.Update(message)
+	switch m.schema.Type {
+	case "input":
+		m.input, cmd = m.input.Update(message)
+	case "select":
+		m.list, cmd = m.list.Update(message)
+	}
 	return m, cmd
 }
 

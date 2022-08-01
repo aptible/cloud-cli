@@ -163,7 +163,7 @@ func NewDatastoreCmd() *cobra.Command {
 		Short:   "describe datastore",
 		Long:    `The datastore show command will provide more detail about a datastore`,
 		Aliases: []string{"show"},
-		RunE:    dsListRun(),
+		RunE:    dsDescribeRun(),
 	}
 
 	dsCreateCmd.Flags().StringVarP(&engine, "engine", "e", "", "the datastore engine, e.g. postgres, mysql, etc.")
