@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/aptible/cloud-cli/cmd/assets"
-	"github.com/aptible/cloud-cli/internal/common"
+	"github.com/aptible/cloud-cli/cmd/asset"
+	"github.com/aptible/cloud-cli/config"
 )
 
 var (
@@ -86,12 +86,12 @@ func NewRootCmd() *cobra.Command {
 		os.Exit(1)
 	}
 
-	assetCmd := assets.NewAssetCmd()
+	assetCmd := asset.NewAssetCmd()
 	envCmd := NewEnvCmd()
-	dsCmd := assets.NewDatastoreCmd()
+	dsCmd := asset.NewDatastoreCmd()
 	orgCmd := NewOrgCmd()
-	configCmd := common.NewConfigCmd()
-	vpcCmd := assets.NewVPCCmd()
+	configCmd := config.NewConfigCmd()
+	vpcCmd := asset.NewVPCCmd()
 
 	rootCmd.AddCommand(
 		assetCmd,
@@ -132,7 +132,7 @@ func initConfig() func() {
 		vconfig.AutomaticEnv()
 
 		if token == "" {
-			token, err = common.FindToken(home, fmt.Sprintf("https://%s", authDomain))
+			token, err = config.FindToken(home, fmt.Sprintf("https://%s", authDomain))
 			if err != nil {
 				fmt.Println("Unable to load token")
 				os.Exit(1)
