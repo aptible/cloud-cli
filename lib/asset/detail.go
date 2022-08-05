@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
+	cac "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/aptible/cloud-cli/config"
 	table "github.com/aptible/cloud-cli/lib/op"
 	"github.com/aptible/cloud-cli/ui/common"
@@ -23,8 +23,8 @@ const (
 type Model struct {
 	config   *config.CloudConfig
 	orgId    string
-	asset    *cloudapiclient.AssetOutput
-	ops      []cloudapiclient.OperationOutput
+	asset    *cac.AssetOutput
+	ops      []cac.OperationOutput
 	fetchOps fetch.Model
 	styles   common.Styles
 	width    int
@@ -32,7 +32,7 @@ type Model struct {
 	status   status
 }
 
-func NewDetailModel(config *config.CloudConfig, orgId string, asset *cloudapiclient.AssetOutput) *Model {
+func NewDetailModel(config *config.CloudConfig, orgId string, asset *cac.AssetOutput) *Model {
 	m := &Model{
 		orgId:  orgId,
 		asset:  asset,
@@ -44,7 +44,7 @@ func NewDetailModel(config *config.CloudConfig, orgId string, asset *cloudapicli
 	return m
 }
 
-func RunDetail(config *config.CloudConfig, orgId string, asset *cloudapiclient.AssetOutput) {
+func RunDetail(config *config.CloudConfig, orgId string, asset *cac.AssetOutput) {
 	p := tea.NewProgram(NewDetailModel(config, orgId, asset), tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
@@ -73,7 +73,7 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 	case fetch.SuccessMsg:
-		m.ops = msg.Result.([]cloudapiclient.OperationOutput)
+		m.ops = msg.Result.([]cac.OperationOutput)
 	}
 
 	switch m.status {

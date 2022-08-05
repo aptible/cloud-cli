@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
+	cac "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -47,7 +47,7 @@ func describeAsset() config.CobraRunE {
 		if err != nil {
 			return err
 		}
-		asset := data.Result.(*cloudapiclient.AssetOutput)
+		asset := data.Result.(*cac.AssetOutput)
 
 		libasset.RunDetail(config, formResult.Org, asset)
 
@@ -116,7 +116,7 @@ func assetsCreateRun() config.CobraRunE {
 		}
 		// TODO: asset type => what's required here is not the same
 		_type := strings.Replace(formResult.AssetType, "aws/", "", 1)
-		params := cloudapiclient.AssetInput{
+		params := cac.AssetInput{
 			Asset:           fmt.Sprintf("aws__%s__latest", _type),
 			AssetVersion:    "latest",
 			AssetParameters: vars,
@@ -131,7 +131,7 @@ func assetsCreateRun() config.CobraRunE {
 		if err != nil {
 			return err
 		}
-		res := result.Result.(*cloudapiclient.AssetOutput)
+		res := result.Result.(*cac.AssetOutput)
 
 		fmt.Printf("Result: %+v\n", res)
 		return nil
@@ -171,7 +171,7 @@ func assetsListRun() config.CobraRunE {
 			return nil
 		}
 
-		results := rawResult.Result.([]cloudapiclient.AssetOutput)
+		results := rawResult.Result.([]cac.AssetOutput)
 		if len(results) == 0 {
 			// TODO - print with tea
 			fmt.Println("No assets found.")
