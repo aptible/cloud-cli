@@ -13,6 +13,10 @@ type FormResult struct {
 	VpcName       string
 	Engine        string
 	EngineVersion string
+	InAsset       string
+	OutAsset      string
+	Asset         string
+	Description   string
 }
 
 type FormFn func(*config.CloudConfig, *FormResult) error

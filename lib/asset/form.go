@@ -194,6 +194,63 @@ func AssetEngineVersionForm(cfg *config.CloudConfig, results *form.FormResult) e
 	return nil
 }
 
+func CreateAssetOptions(orgId, envId string) form.LoadOptionsFn {
+	options := []list.Item{}
+	return func(cfg *config.CloudConfig) ([]list.Item, error) {
+		assets, err := cfg.Cc.ListAssets(orgId, envId)
+		if err != nil {
+			return options, err
+		}
+		for _, asset := range assets {
+			name := GetName(asset)
+			options = append(options, form.FormOption{Label: name, Value: asset.Id})
+		}
+		return options, nil
+	}
+}
+
+func NewAssetProp(orgId, envId string) *form.SubSchema {
+	return &form.SubSchema{
+		Type:        "select",
+		Title:       "Select an asset",
+		LoadOptions: CreateAssetOptions(orgId, envId),
+	}
+}
+
+func AssetForm(cfg *config.CloudConfig, results *form.FormResult) error {
+	if results.Asset != "" {
+		return nil
+	}
+
+	prop := NewAssetProp(results.Org, results.Env)
+	result, err := form.Run(form.NewModel(cfg, prop))
+	if err != nil {
+		return err
+	}
+	if result == "" {
+		return fmt.Errorf("You must select an asset")
+	}
+	results.Asset = result
+
+	return nil
+}
+
+func AssetDescribeForm(cfg *config.CloudConfig, results *form.FormResult) error {
+	forms := []form.FormFn{
+		libenv.EnvForm,
+		AssetForm,
+	}
+
+	for _, formFn := range forms {
+		err := formFn(cfg, results)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func AssetCreateForm(cfg *config.CloudConfig, results *form.FormResult) error {
 	forms := []form.FormFn{
 		libenv.EnvForm,

@@ -12,19 +12,23 @@ Whenever we want to interface with the API, we should use this interface.
 type CloudClient interface {
 	ListEnvironments(orgId string) ([]cac.EnvironmentOutput, error)
 	CreateEnvironment(orgId string, params cac.EnvironmentInput) (*cac.EnvironmentOutput, error)
-	DestroyEnvironment(orgId string, envId string) error
+	DestroyEnvironment(orgId, envId string) error
 
 	ListOrgs() ([]cac.OrganizationOutput, error)
 	CreateOrg(orgId string, params cac.OrganizationInput) (*cac.OrganizationOutput, error)
 	FindOrg(orgId string) (*cac.OrganizationOutput, error)
 
-	ListAssetBundles(orgId string, envId string) ([]cac.AssetBundle, error)
-	CreateAsset(orgId string, envId string, params cac.AssetInput) (*cac.AssetOutput, error)
-	ListAssets(orgId string, envId string) ([]cac.AssetOutput, error)
-	DescribeAsset(orgId string, envId string, assetId string) (*cac.AssetOutput, error)
+	ListAssetBundles(orgId, envId string) ([]cac.AssetBundle, error)
+	CreateAsset(orgId, envId string, params cac.AssetInput) (*cac.AssetOutput, error)
+	ListAssets(orgId, envId string) ([]cac.AssetOutput, error)
+	DescribeAsset(orgId, envId, assetId string) (*cac.AssetOutput, error)
 	//ListAssetTypesForEnvironment(envId string) error
 	// UpdateAsset(orgId string, envId string, assetID string, assetInput *client.AssetInput) error
-	DestroyAsset(orgId string, envId string, assetID string) error
+	DestroyAsset(orgId, envId, assetID string) error
 
-	ListOperationsByAsset(orgId string, assetId string) ([]cac.OperationOutput, error)
+	ListOperationsByAsset(orgId, assetId string) ([]cac.OperationOutput, error)
+
+	CreateConnection(orgId, envId, assetId string, params cac.ConnectionInput) (*cac.ConnectionOutput, error)
+	// DescribeConnection(orgId, envId, assetId, connectionId string) (cac.ConnectionOutput, error)
+	DestroyConnection(orgId, envId, assetId, connectionId string) error
 }

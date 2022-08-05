@@ -1,4 +1,4 @@
-package debug
+package teadebug
 
 import (
 	"fmt"
