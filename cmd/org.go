@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
+	cac "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/aptible/cloud-cli/config"
 	"github.com/aptible/cloud-cli/lib/org"
 	"github.com/aptible/cloud-cli/ui/fetch"
@@ -26,7 +26,7 @@ func organizationCreateRun() config.CobraRunE {
 
 		output := make(map[string]interface{})
 		var ou string
-		params := cloudapiclient.OrganizationInput{
+		params := cac.OrganizationInput{
 			Name:           args[0],
 			BaaStatus:      "pending",
 			AwsOu:          &ou,
@@ -41,7 +41,7 @@ func organizationCreateRun() config.CobraRunE {
 			return err
 		}
 
-		orgsTable := liborg.OrgTable(result.Result.(*cloudapiclient.OrganizationOutput))
+		orgsTable := liborg.OrgTable(result.Result.(*cac.OrganizationOutput))
 		// TODO - print with tea
 		fmt.Println("Created Organization(s)")
 		fmt.Println(orgsTable.View())
@@ -66,7 +66,7 @@ func orgListRun() config.CobraRunE {
 			return nil
 		}
 
-		orgsTable := liborg.OrgTable(result.Result.([]cloudapiclient.OrganizationOutput))
+		orgsTable := liborg.OrgTable(result.Result.([]cac.OrganizationOutput))
 		// TODO - print with tea
 		fmt.Println("Organization(s) List")
 		fmt.Println(orgsTable.View())

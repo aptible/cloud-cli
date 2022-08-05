@@ -3,7 +3,7 @@ package asset
 import (
 	"fmt"
 
-	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
+	cac "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/aptible/cloud-cli/config"
 	libasset "github.com/aptible/cloud-cli/lib/asset"
 	libenv "github.com/aptible/cloud-cli/lib/env"
@@ -31,7 +31,7 @@ func vpcCreateRun() config.CobraRunE {
 		vars := map[string]interface{}{
 			"name": name,
 		}
-		params := cloudapiclient.AssetInput{
+		params := cac.AssetInput{
 			Asset:           "aws__vpc__latest",
 			AssetVersion:    "latest",
 			AssetParameters: vars,
@@ -46,7 +46,7 @@ func vpcCreateRun() config.CobraRunE {
 		if err != nil {
 			return err
 		}
-		vpcTable := libasset.AssetTable(result.Result.(*cloudapiclient.AssetOutput))
+		vpcTable := libasset.AssetTable(result.Result.(*cac.AssetOutput))
 		// TODO - print with tea
 		fmt.Println("VPC(s) Created:")
 		fmt.Println(vpcTable.View())
@@ -92,7 +92,7 @@ func vpcListRun() config.CobraRunE {
 			fmt.Println("No vpcs found.")
 			return nil
 		}
-		unfilteredResults := rawResult.Result.([]cloudapiclient.AssetOutput)
+		unfilteredResults := rawResult.Result.([]cac.AssetOutput)
 		filteredResults := libasset.FilterByType(unfilteredResults, []string{"vpc"})
 		if len(filteredResults) == 0 {
 			fmt.Println("No vpcs found.")

@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
+	cac "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/aptible/cloud-cli/config"
 	"github.com/aptible/cloud-cli/lib/env"
 	liborg "github.com/aptible/cloud-cli/lib/org"
@@ -26,7 +26,7 @@ func envCreateRun() config.CobraRunE {
 		}
 
 		desc := ""
-		params := cloudapiclient.EnvironmentInput{
+		params := cac.EnvironmentInput{
 			Name:        args[0],
 			Description: &desc,
 			Data:        map[string]interface{}{},
@@ -41,7 +41,7 @@ func envCreateRun() config.CobraRunE {
 			return err
 		}
 
-		envTable := libenv.EnvTable(result.Result.(*cloudapiclient.EnvironmentOutput))
+		envTable := libenv.EnvTable(result.Result.(*cac.EnvironmentOutput))
 		// TODO - print with tea
 		fmt.Println("Created Environment(s)")
 		fmt.Println(envTable.View())
@@ -100,7 +100,7 @@ func envListRun() config.CobraRunE {
 			return nil
 		}
 
-		envTable := libenv.EnvTable(result.Result.([]cloudapiclient.EnvironmentOutput))
+		envTable := libenv.EnvTable(result.Result.([]cac.EnvironmentOutput))
 		// TODO - print with tea
 		fmt.Println("Environment(s) List")
 		fmt.Println(envTable.View())

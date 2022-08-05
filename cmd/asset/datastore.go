@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	cloudapiclient "github.com/aptible/cloud-api-clients/clients/go"
+	cac "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/aptible/cloud-cli/config"
 	libasset "github.com/aptible/cloud-cli/lib/asset"
 	libenv "github.com/aptible/cloud-cli/lib/env"
@@ -65,8 +65,8 @@ func dsListRun() config.CobraRunE {
 		}
 
 		dsAssetTypes := []string{"rds"}
-		unfilteredResults := rawResult.Result.([]cloudapiclient.AssetOutput)
-		filteredResults := make([]cloudapiclient.AssetOutput, 0)
+		unfilteredResults := rawResult.Result.([]cac.AssetOutput)
+		filteredResults := make([]cac.AssetOutput, 0)
 		for _, result := range unfilteredResults {
 			for _, acceptedDsType := range dsAssetTypes {
 				if strings.Contains(result.Asset, acceptedDsType) {
