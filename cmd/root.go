@@ -92,6 +92,7 @@ func NewRootCmd() *cobra.Command {
 	orgCmd := NewOrgCmd()
 	configCmd := config.NewConfigCmd()
 	vpcCmd := asset.NewVPCCmd()
+	connCmd := NewConnectionCmd()
 
 	rootCmd.AddCommand(
 		assetCmd,
@@ -100,6 +101,7 @@ func NewRootCmd() *cobra.Command {
 		envCmd,
 		orgCmd,
 		vpcCmd,
+		connCmd,
 	)
 
 	return rootCmd

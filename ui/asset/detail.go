@@ -1,4 +1,4 @@
-package libasset
+package assetui
 
 import (
 	"fmt"
@@ -7,7 +7,9 @@ import (
 
 	cac "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/aptible/cloud-cli/config"
-	table "github.com/aptible/cloud-cli/lib/op"
+	"github.com/aptible/cloud-cli/lib/asset"
+	"github.com/aptible/cloud-cli/lib/conn"
+	"github.com/aptible/cloud-cli/lib/op"
 	"github.com/aptible/cloud-cli/ui/common"
 	"github.com/aptible/cloud-cli/ui/fetch"
 	tea "github.com/charmbracelet/bubbletea"
@@ -109,18 +111,28 @@ func helpView(m Model) string {
 }
 
 func (m Model) bioView() string {
-	s := m.styles.Logo.Render(GetName(*m.asset))
+	s := m.styles.Logo.Render(libasset.GetName(*m.asset))
 	s += "\n\n"
 	s += common.KeyValueView(
 		"Id", m.asset.Id,
 		"Asset", m.asset.Asset,
 	)
 	s += m.opsTableView()
+	s += m.connTableView()
+	return s
+}
+
+func (m Model) connTableView() string {
+	tbl := libconn.ConnTable(m.asset.Connections)
+	s := "\n\n\n"
+	s += m.styles.Logo.Render("Connections")
+	s += "\n"
+	s += tbl.View()
 	return s
 }
 
 func (m Model) opsTableView() string {
-	tbl := table.OpTable(m.ops)
+	tbl := libop.OpTable(m.ops)
 	s := "\n\n\n"
 	s += m.styles.Logo.Render("Operations")
 	s += "  " + m.fetchOps.View()

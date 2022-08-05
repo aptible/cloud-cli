@@ -69,61 +69,112 @@ func (c *client) PrintResponse(r *http.Response) {
 }
 
 func (c *client) ListEnvironments(orgId string) ([]cac.EnvironmentOutput, error) {
-	request := c.apiClient.EnvironmentsApi.GetEnvironmentsApiV1OrganizationsOrganizationIdEnvironmentsGet(c.ctx, orgId)
+	request := c.
+		apiClient.
+		EnvironmentsApi.
+		GetEnvironmentsApiV1OrganizationsOrganizationIdEnvironmentsGet(c.ctx, orgId)
 	env, r, err := request.Execute()
 	c.HandleResponse(r)
 	return env, err
 }
 
 func (c *client) CreateEnvironment(orgId string, params cac.EnvironmentInput) (*cac.EnvironmentOutput, error) {
-	request := c.apiClient.EnvironmentsApi.CreateEnvironmentApiV1OrganizationsOrganizationIdEnvironmentsPost(c.ctx, orgId).EnvironmentInput(params)
+	request := c.
+		apiClient.
+		EnvironmentsApi.
+		CreateEnvironmentApiV1OrganizationsOrganizationIdEnvironmentsPost(c.ctx, orgId).
+		EnvironmentInput(params)
 	env, r, err := request.Execute()
 	c.HandleResponse(r)
 	return env, err
 }
 
 func (c *client) DestroyEnvironment(orgId string, envId string) error {
-	_, r, err := c.apiClient.EnvironmentsApi.DeleteEnvironmentByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdDelete(c.ctx, envId, orgId).Execute()
+	_, r, err := c.
+		apiClient.
+		EnvironmentsApi.
+		DeleteEnvironmentByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdDelete(
+			c.ctx,
+			envId,
+			orgId,
+		).
+		Execute()
 	c.HandleResponse(r)
 	return err
 }
 
 func (c *client) CreateOrg(orgId string, params cac.OrganizationInput) (*cac.OrganizationOutput, error) {
-	request := c.apiClient.OrganizationsApi.PutOrganizationApiV1OrganizationsOrganizationIdPut(c.ctx, orgId).OrganizationInput(params)
+	request := c.
+		apiClient.
+		OrganizationsApi.
+		PutOrganizationApiV1OrganizationsOrganizationIdPut(c.ctx, orgId).
+		OrganizationInput(params)
 	org, r, err := request.Execute()
 	c.HandleResponse(r)
 	return org, err
 }
 
 func (c *client) FindOrg(orgId string) (*cac.OrganizationOutput, error) {
-	org, r, err := c.apiClient.OrganizationsApi.GetOrganizationByIdApiV1OrganizationsOrganizationIdGet(c.ctx, orgId).Execute()
+	org, r, err := c.
+		apiClient.
+		OrganizationsApi.
+		GetOrganizationByIdApiV1OrganizationsOrganizationIdGet(c.ctx, orgId).
+		Execute()
 	c.HandleResponse(r)
 	return org, err
 }
 
 func (c *client) CreateAsset(orgId string, envId string, params cac.AssetInput) (*cac.AssetOutput, error) {
-	request := c.apiClient.AssetsApi.CreateAssetApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsPost(c.ctx, envId, orgId).AssetInput(params)
+	request := c.
+		apiClient.
+		AssetsApi.
+		CreateAssetApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsPost(
+			c.ctx,
+			envId,
+			orgId,
+		).
+		AssetInput(params)
 	asset, r, err := request.Execute()
 	c.HandleResponse(r)
 	return asset, err
 }
 
 func (c *client) DestroyAsset(orgId string, envId string, assetId string) error {
-	request := c.apiClient.AssetsApi.DeleteAssetByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdDelete(c.ctx, assetId, envId, orgId)
+	request := c.
+		apiClient.
+		AssetsApi.
+		DeleteAssetByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdDelete(
+			c.ctx,
+			assetId,
+			envId,
+			orgId,
+		)
 	_, r, err := request.Execute()
 	c.HandleResponse(r)
 	return err
 }
 
 func (c *client) ListAssets(orgId string, envId string) ([]cac.AssetOutput, error) {
-	request := c.apiClient.AssetsApi.GetAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsGet(c.ctx, envId, orgId)
+	request := c.apiClient.AssetsApi.GetAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsGet(
+		c.ctx,
+		envId,
+		orgId,
+	)
 	assets, r, err := request.Execute()
 	c.HandleResponse(r)
 	return assets, err
 }
 
 func (c *client) DescribeAsset(orgId string, envId string, assetId string) (*cac.AssetOutput, error) {
-	request := c.apiClient.AssetsApi.GetAssetByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdGet(c.ctx, assetId, envId, orgId)
+	request := c.
+		apiClient.
+		AssetsApi.
+		GetAssetByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdGet(
+			c.ctx,
+			assetId,
+			envId,
+			orgId,
+		)
 	asset, r, err := request.Execute()
 	c.HandleResponse(r)
 	return asset, err
@@ -137,15 +188,58 @@ func (c *client) ListOrgs() ([]cac.OrganizationOutput, error) {
 }
 
 func (c *client) ListOperationsByAsset(orgId string, assetId string) ([]cac.OperationOutput, error) {
-	request := c.apiClient.OperationsApi.GetOperationsApiV1OrganizationsOrganizationIdOperationsGet(c.ctx, orgId).AssetId(assetId)
+	request := c.
+		apiClient.
+		OperationsApi.
+		GetOperationsApiV1OrganizationsOrganizationIdOperationsGet(c.ctx, orgId).
+		AssetId(assetId)
 	ops, r, err := request.Execute()
 	c.HandleResponse(r)
 	return ops, err
 }
 
 func (c *client) ListAssetBundles(orgId string, envId string) ([]cac.AssetBundle, error) {
-	request := c.apiClient.EnvironmentsApi.GetEnvironmentAllowedAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetBundlesGet(c.ctx, envId, orgId)
+	request := c.
+		apiClient.
+		EnvironmentsApi.
+		GetEnvironmentAllowedAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetBundlesGet(
+			c.ctx,
+			envId,
+			orgId,
+		)
 	bundles, r, err := request.Execute()
 	c.HandleResponse(r)
 	return bundles, err
+}
+
+func (c *client) CreateConnection(orgId, envId, assetId string, params cac.ConnectionInput) (*cac.ConnectionOutput, error) {
+	request := c.
+		apiClient.
+		ConnectionsApi.
+		CreateConnectionApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdConnectionsPost(
+			c.ctx,
+			assetId,
+			envId,
+			orgId,
+		).
+		ConnectionInput(params)
+	conn, r, err := request.Execute()
+	c.HandleResponse(r)
+	return conn, err
+}
+
+func (c *client) DestroyConnection(orgId, envId, assetId, connectionId string) error {
+	request := c.
+		apiClient.
+		ConnectionsApi.
+		DeleteConnectionApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdConnectionsConnectionIdDelete(
+			c.ctx,
+			assetId,
+			connectionId,
+			envId,
+			orgId,
+		)
+	_, r, err := request.Execute()
+	c.HandleResponse(r)
+	return err
 }

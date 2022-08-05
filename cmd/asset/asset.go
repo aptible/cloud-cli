@@ -11,11 +11,13 @@ import (
 	"github.com/aptible/cloud-cli/config"
 	"github.com/aptible/cloud-cli/lib/asset"
 	libenv "github.com/aptible/cloud-cli/lib/env"
+	"github.com/aptible/cloud-cli/ui/asset"
 	"github.com/aptible/cloud-cli/ui/fetch"
 	"github.com/aptible/cloud-cli/ui/form"
 )
 
 type AssetOptions struct {
+	Asset         string
 	AssetName     string
 	AssetType     string
 	VpcName       string
@@ -29,19 +31,20 @@ var assetOptions = AssetOptions{}
 func describeAsset() config.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := config.NewCloudConfig(viper.GetViper())
-		org := config.Vconfig.GetString("org")
-		env := config.Vconfig.GetString("env")
-		assetId := args[0]
 
-		formResult := form.FormResult{Org: org, Env: env}
-		err := libenv.EnvForm(config, &formResult)
+		formResult := form.FormResult{
+			Org:   config.Vconfig.GetString("org"),
+			Env:   config.Vconfig.GetString("env"),
+			Asset: assetOptions.Asset,
+		}
+		err := libasset.AssetDescribeForm(config, &formResult)
 		if err != nil {
 			return nil
 		}
 
-		msg := fmt.Sprintf("describing asset %s", assetId)
+		msg := fmt.Sprintf("describing asset %s", formResult.Asset)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			return config.Cc.DescribeAsset(formResult.Org, formResult.Env, assetId)
+			return config.Cc.DescribeAsset(formResult.Org, formResult.Env, formResult.Asset)
 		})
 		data, err := fetch.WithOutput(model)
 		if err != nil {
@@ -49,7 +52,7 @@ func describeAsset() config.CobraRunE {
 		}
 		asset := data.Result.(*cac.AssetOutput)
 
-		libasset.RunDetail(config, formResult.Org, asset)
+		assetui.RunDetail(config, formResult.Org, asset)
 
 		return nil
 	}
@@ -234,6 +237,7 @@ func NewAssetCmd() *cobra.Command {
 	assetCreateCmd.Flags().StringVarP(&assetOptions.AssetType, "asset-type", "", "", "asset type")
 	assetCreateCmd.Flags().StringVarP(&assetOptions.Engine, "engine", "", "", "engine")
 	assetCreateCmd.Flags().StringVarP(&assetOptions.EngineVersion, "engine-version", "", "", "engine version")
+	assetCreateCmd.Flags().StringVarP(&assetOptions.Asset, "asset", "", "", "asset id")
 
 	assetCmd.AddCommand(assetCreateCmd)
 	assetCmd.AddCommand(assetDestroyCmd)
