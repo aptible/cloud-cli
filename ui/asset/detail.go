@@ -110,19 +110,38 @@ func helpView(m Model) string {
 	return common.HelpView(items...)
 }
 
+func infToStr(inf interface{}) string {
+	switch inf.(type) {
+	case string:
+		return inf.(string)
+	case int:
+		return inf.(string)
+	default:
+		return ""
+	}
+}
+
 func (m Model) bioView() string {
-	s := m.styles.Logo.Render(libasset.GetName(*m.asset))
-	s += "\n\n"
-	s += common.KeyValueView(
+	vs := []string{
 		"Id", m.asset.Id,
 		"Asset", m.asset.Asset,
-	)
+		"VPC", infToStr(m.asset.CurrentAssetParameters.Data["vpc_name"]),
+		"Engine", infToStr(m.asset.CurrentAssetParameters.Data["engine"]),
+		"Engine Version", infToStr(m.asset.CurrentAssetParameters.Data["engine_version"]),
+	}
+	s := m.styles.Logo.Render(libasset.GetName(*m.asset))
+	s += "\n\n"
+	s += common.KeyValueView(vs...)
 	s += m.opsTableView()
 	s += m.connTableView()
 	return s
 }
 
 func (m Model) connTableView() string {
+	if len(m.asset.Connections) == 0 {
+		return ""
+	}
+
 	tbl := libconn.ConnTable(m.asset.Connections)
 	s := "\n\n\n"
 	s += m.styles.Logo.Render("Connections")
@@ -132,6 +151,10 @@ func (m Model) connTableView() string {
 }
 
 func (m Model) opsTableView() string {
+	if len(m.ops) == 0 {
+		return ""
+	}
+
 	tbl := libop.OpTable(m.ops)
 	s := "\n\n\n"
 	s += m.styles.Logo.Render("Operations")

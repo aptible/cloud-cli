@@ -66,19 +66,20 @@ func assetDescribeRun() config.CobraRunE {
 func destroyAsset() config.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
 		config := config.NewCloudConfig(viper.GetViper())
-		org := config.Vconfig.GetString("org")
-		env := config.Vconfig.GetString("env")
-		assetId := args[0]
 
-		formResult := form.FormResult{Org: org, Env: env}
-		err := libenv.EnvForm(config, &formResult)
+		formResult := form.FormResult{
+			Org:   config.Vconfig.GetString("org"),
+			Env:   config.Vconfig.GetString("env"),
+			Asset: assetOptions.Asset,
+		}
+		err := libasset.AssetDescribeForm(config, &formResult)
 		if err != nil {
 			return nil
 		}
 
-		msg := fmt.Sprintf("destroying asset %s (v%s)", engine, engineVersion)
+		msg := fmt.Sprintf("destroying asset %s", formResult.Asset)
 		model := fetch.NewModel(msg, func() (interface{}, error) {
-			err := config.Cc.DestroyAsset(formResult.Org, formResult.Env, assetId)
+			err := config.Cc.DestroyAsset(formResult.Org, formResult.Env, formResult.Asset)
 			return nil, err
 		})
 		_, err = fetch.WithOutput(model)
@@ -86,7 +87,7 @@ func destroyAsset() config.CobraRunE {
 			return err
 		}
 
-		fmt.Printf("Started request to destroy asset with id: %+v\n", assetId)
+		fmt.Printf("Started request to destroy asset with id: %+v\n", formResult.Asset)
 		return nil
 	}
 }
@@ -136,7 +137,13 @@ func assetsCreateRun() config.CobraRunE {
 		}
 		res := result.Result.(*cac.AssetOutput)
 
-		fmt.Printf("Result: %+v\n", res)
+		fmt.Printf("Asset is being provisioned.\nTo see its progress, run:\n")
+		fmt.Printf(
+			"	aptible asset show --org %s --env %s --asset %s",
+			formResult.Org,
+			formResult.Env,
+			res.Id,
+		)
 		return nil
 	}
 }
@@ -212,7 +219,6 @@ func NewAssetCmd() *cobra.Command {
 		Short:   "permanently remove the asset.",
 		Long:    `The asset destroy command will permanently remove the asset.`,
 		Aliases: []string{"d", "delete", "rm", "remove"},
-		Args:    cobra.MinimumNArgs(1),
 		RunE:    assetsDestroyRun(),
 	}
 
@@ -238,6 +244,8 @@ func NewAssetCmd() *cobra.Command {
 	assetCreateCmd.Flags().StringVarP(&assetOptions.Engine, "engine", "", "", "engine")
 	assetCreateCmd.Flags().StringVarP(&assetOptions.EngineVersion, "engine-version", "", "", "engine version")
 	assetCreateCmd.Flags().StringVarP(&assetOptions.Asset, "asset", "", "", "asset id")
+
+	assetDescribeCmd.Flags().StringVarP(&assetOptions.Asset, "asset", "", "", "asset id")
 
 	assetCmd.AddCommand(assetCreateCmd)
 	assetCmd.AddCommand(assetDestroyCmd)
