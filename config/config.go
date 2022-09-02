@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -34,7 +33,7 @@ func FindToken(home string, domain string) (string, error) {
 	}
 
 	var tokenObj map[string]string
-	text, err := ioutil.ReadFile(path.Join(home, ".aptible", "tokens.json"))
+	text, err := os.ReadFile(path.Join(home, ".aptible", "tokens.json"))
 	if err != nil {
 		return "", err
 	}

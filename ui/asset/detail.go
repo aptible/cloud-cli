@@ -3,6 +3,7 @@ package assetui
 import (
 	"fmt"
 	"log"
+	"reflect"
 	"time"
 
 	cac "github.com/aptible/cloud-api-clients/clients/go"
@@ -111,14 +112,13 @@ func helpView(m Model) string {
 }
 
 func infToStr(inf interface{}) string {
-	switch inf.(type) {
-	case string:
-		return inf.(string)
-	case int:
-		return inf.(string)
-	default:
-		return ""
+	if inf != nil {
+		infType := reflect.TypeOf(inf).String()
+		if infType == "string" || infType == "int" {
+			return inf.(string)
+		}
 	}
+	return ""
 }
 
 func (m Model) bioView() string {

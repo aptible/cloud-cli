@@ -3,7 +3,7 @@ module github.com/aptible/cloud-cli
 go 1.18
 
 require (
-	github.com/aptible/cloud-api-clients/clients/go v0.0.0-20220728190750-30284f8e9fc9
+	github.com/aptible/cloud-api-clients/clients/go v0.0.0-20220901200258-1625c7fe3029
 	github.com/charmbracelet/bubbles v0.12.0
 	github.com/charmbracelet/bubbletea v0.22.0
 	github.com/charmbracelet/lipgloss v0.5.0

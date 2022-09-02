@@ -38,8 +38,8 @@ cloud.google.com/go/storage v1.14.0/go.mod h1:GrKmX003DSIwi9o29oFT7YDnHYwZoctc3f
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/aptible/cloud-api-clients/clients/go v0.0.0-20220728190750-30284f8e9fc9 h1:waW61ZJWFZhWC+ItAbQ+NuIp8dnZurMLaaUTx35aiJc=
-github.com/aptible/cloud-api-clients/clients/go v0.0.0-20220728190750-30284f8e9fc9/go.mod h1:STHSTs0Uxf0oXQbtf8x8JxljnaQ5CC3wb0KqdBm7HDE=
+github.com/aptible/cloud-api-clients/clients/go v0.0.0-20220901200258-1625c7fe3029 h1:N4yp3LBmnVVYUI+/Q8hBO9y/2hl4JCee3JbWjGs60Wk=
+github.com/aptible/cloud-api-clients/clients/go v0.0.0-20220901200258-1625c7fe3029/go.mod h1:STHSTs0Uxf0oXQbtf8x8JxljnaQ5CC3wb0KqdBm7HDE=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=
 github.com/atotto/clipboard v0.1.4/go.mod h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn0Yu86PYI=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=

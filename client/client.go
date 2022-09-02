@@ -71,8 +71,8 @@ func (c *client) PrintResponse(r *http.Response) {
 func (c *client) ListEnvironments(orgId string) ([]cac.EnvironmentOutput, error) {
 	request := c.
 		apiClient.
-		EnvironmentsApi.
-		GetEnvironmentsApiV1OrganizationsOrganizationIdEnvironmentsGet(c.ctx, orgId)
+		OrganizationsApi.
+		OrganizationGetEnvironments(c.ctx, orgId)
 	env, r, err := request.Execute()
 	c.HandleResponse(r)
 	return env, err
@@ -82,7 +82,7 @@ func (c *client) CreateEnvironment(orgId string, params cac.EnvironmentInput) (*
 	request := c.
 		apiClient.
 		EnvironmentsApi.
-		CreateEnvironmentApiV1OrganizationsOrganizationIdEnvironmentsPost(c.ctx, orgId).
+		EnvironmentCreate(c.ctx, orgId).
 		EnvironmentInput(params)
 	env, r, err := request.Execute()
 	c.HandleResponse(r)
@@ -93,7 +93,7 @@ func (c *client) DestroyEnvironment(orgId string, envId string) error {
 	_, r, err := c.
 		apiClient.
 		EnvironmentsApi.
-		DeleteEnvironmentByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdDelete(
+		EnvironmentDelete(
 			c.ctx,
 			envId,
 			orgId,
@@ -107,7 +107,7 @@ func (c *client) CreateOrg(orgId string, params cac.OrganizationInput) (*cac.Org
 	request := c.
 		apiClient.
 		OrganizationsApi.
-		PutOrganizationApiV1OrganizationsOrganizationIdPut(c.ctx, orgId).
+		OrganizationUpdate(c.ctx, orgId).
 		OrganizationInput(params)
 	org, r, err := request.Execute()
 	c.HandleResponse(r)
@@ -118,7 +118,7 @@ func (c *client) FindOrg(orgId string) (*cac.OrganizationOutput, error) {
 	org, r, err := c.
 		apiClient.
 		OrganizationsApi.
-		GetOrganizationByIdApiV1OrganizationsOrganizationIdGet(c.ctx, orgId).
+		OrganizationGet(c.ctx, orgId).
 		Execute()
 	c.HandleResponse(r)
 	return org, err
@@ -128,7 +128,7 @@ func (c *client) CreateAsset(orgId string, envId string, params cac.AssetInput) 
 	request := c.
 		apiClient.
 		AssetsApi.
-		CreateAssetApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsPost(
+		AssetCreate(
 			c.ctx,
 			envId,
 			orgId,
@@ -143,7 +143,7 @@ func (c *client) DestroyAsset(orgId string, envId string, assetId string) error 
 	request := c.
 		apiClient.
 		AssetsApi.
-		DeleteAssetByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdDelete(
+		AssetDelete(
 			c.ctx,
 			assetId,
 			envId,
@@ -155,7 +155,7 @@ func (c *client) DestroyAsset(orgId string, envId string, assetId string) error 
 }
 
 func (c *client) ListAssets(orgId string, envId string) ([]cac.AssetOutput, error) {
-	request := c.apiClient.AssetsApi.GetAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsGet(
+	request := c.apiClient.EnvironmentsApi.EnvironmentGetAssets(
 		c.ctx,
 		envId,
 		orgId,
@@ -169,7 +169,7 @@ func (c *client) DescribeAsset(orgId string, envId string, assetId string) (*cac
 	request := c.
 		apiClient.
 		AssetsApi.
-		GetAssetByIdApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdGet(
+		AssetGet(
 			c.ctx,
 			assetId,
 			envId,
@@ -181,7 +181,7 @@ func (c *client) DescribeAsset(orgId string, envId string, assetId string) (*cac
 }
 
 func (c *client) ListOrgs() ([]cac.OrganizationOutput, error) {
-	request := c.apiClient.OrganizationsApi.GetOrganizationsApiV1OrganizationsGet(c.ctx)
+	request := c.apiClient.OrganizationsApi.OrganizationList(c.ctx)
 	orgs, r, err := request.Execute()
 	c.HandleResponse(r)
 	return orgs, err
@@ -190,8 +190,8 @@ func (c *client) ListOrgs() ([]cac.OrganizationOutput, error) {
 func (c *client) ListOperationsByAsset(orgId string, assetId string) ([]cac.OperationOutput, error) {
 	request := c.
 		apiClient.
-		OperationsApi.
-		GetOperationsApiV1OrganizationsOrganizationIdOperationsGet(c.ctx, orgId).
+		OrganizationsApi.
+		OrganizationGetOperations(c.ctx, orgId).
 		AssetId(assetId)
 	ops, r, err := request.Execute()
 	c.HandleResponse(r)
@@ -202,7 +202,7 @@ func (c *client) ListAssetBundles(orgId string, envId string) ([]cac.AssetBundle
 	request := c.
 		apiClient.
 		EnvironmentsApi.
-		GetEnvironmentAllowedAssetsApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetBundlesGet(
+		EnvironmentGetAllowedAssetBundles(
 			c.ctx,
 			envId,
 			orgId,
@@ -216,7 +216,7 @@ func (c *client) CreateConnection(orgId, envId, assetId string, params cac.Conne
 	request := c.
 		apiClient.
 		ConnectionsApi.
-		CreateConnectionApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdConnectionsPost(
+		ConnectionCreate(
 			c.ctx,
 			assetId,
 			envId,
@@ -232,7 +232,7 @@ func (c *client) DestroyConnection(orgId, envId, assetId, connectionId string) e
 	request := c.
 		apiClient.
 		ConnectionsApi.
-		DeleteConnectionApiV1OrganizationsOrganizationIdEnvironmentsEnvironmentIdAssetsAssetIdConnectionsConnectionIdDelete(
+		ConnectionDelete(
 			c.ctx,
 			assetId,
 			connectionId,
