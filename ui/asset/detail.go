@@ -112,9 +112,11 @@ func helpView(m Model) string {
 }
 
 func infToStr(inf interface{}) string {
-	infType := reflect.TypeOf(inf).String()
-	if infType == "string" || infType == "int" {
-		return inf.(string)
+	if inf != nil {
+		infType := reflect.TypeOf(inf).String()
+		if infType == "string" || infType == "int" {
+			return inf.(string)
+		}
 	}
 	return ""
 }
