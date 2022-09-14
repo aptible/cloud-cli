@@ -59,8 +59,8 @@ func NewRootCmd() *cobra.Command {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "common", "", "common file (default is $HOME/.aptible.yaml)")
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "jwt token")
-	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "auth-pentest.aptible-sandbox.com", "auth domain")
-	rootCmd.PersistentFlags().StringVar(&apiDomain, "api-domain", "cloud-api.aptible.com", "api domain")
+	rootCmd.PersistentFlags().StringVar(&authDomain, "auth-domain", "auth.aptible.com", "auth domain")
+	rootCmd.PersistentFlags().StringVar(&apiDomain, "api-domain", "cloud-api.cloud.aptible.com", "api domain")
 	rootCmd.PersistentFlags().StringVar(&org, "org", "", "organization id")
 	rootCmd.PersistentFlags().StringVar(&env, "env", "", "environment id")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "debug logging")
