@@ -13,6 +13,12 @@ func DefaultRowStyle() lipgloss.Style {
 		Align(lipgloss.Center)
 }
 
+func LeftRowStyle() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(white).
+		Align(lipgloss.Left)
+}
+
 func DisabledRowStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(red).
