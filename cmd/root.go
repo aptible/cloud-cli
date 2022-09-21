@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -132,18 +133,23 @@ func initConfig() func() {
 		}
 
 		vconfig.AutomaticEnv()
+		vconfig.SetEnvPrefix("APTIBLE")
+		// transform viper/cobra keys with underscores for environment variables
+		replacer := strings.NewReplacer("-", "_")
+		vconfig.SetEnvKeyReplacer(replacer)
 
+		if err := vconfig.ReadInConfig(); err == nil {
+			fmt.Println("Using common file:", vconfig.ConfigFileUsed())
+		}
+
+		token = vconfig.GetString("token")
 		if token == "" {
 			token, err = config.FindToken(home, fmt.Sprintf("https://%s", authDomain))
 			if err != nil {
 				fmt.Println("Unable to load token")
 				os.Exit(1)
 			}
-		}
-		vconfig.Set("token", token)
-
-		if err := vconfig.ReadInConfig(); err == nil {
-			fmt.Println("Using common file:", vconfig.ConfigFileUsed())
+			vconfig.Set("token", token)
 		}
 	}
 }

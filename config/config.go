@@ -27,11 +27,6 @@ type CobraRunE func(cmd *cobra.Command, args []string) error
 
 // FindToken - tries to find an aptible token in various paths
 func FindToken(home string, domain string) (string, error) {
-	if os.Getenv("APTIBLE_TOKEN") != "" {
-		// TODO - find a better way to do this
-		return os.Getenv("APTIBLE_TOKEN"), nil
-	}
-
 	var tokenObj map[string]string
 	text, err := os.ReadFile(path.Join(home, ".aptible", "tokens.json"))
 	if err != nil {
@@ -46,14 +41,7 @@ func FindToken(home string, domain string) (string, error) {
 }
 
 func NewCloudConfig(v *viper.Viper) *CloudConfig {
-	var host string
-	if os.Getenv("APTIBLE_API_DOMAIN") != "" {
-		// TODO - find a better way to do this
-		host = os.Getenv("APTIBLE_API_DOMAIN")
-	} else {
-		host = v.GetString("api-domain")
-	}
-
+	host := v.GetString("api-domain")
 	token := v.GetString("token")
 	debug := v.GetBool("debug")
 	cc := client.NewClient(debug, host, token)
