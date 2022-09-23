@@ -1,14 +1,16 @@
 package libasset
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
 	cac "github.com/aptible/cloud-api-clients/clients/go"
 	"github.com/aptible/cloud-cli/ui/common"
 	"github.com/evertras/bubble-table/table"
+	"golang.org/x/term"
 )
 
-// colorizeAssetFromStatus - common utility for assets to colorize rows in CLI based on asset status
 func colorizeFromStatus(asset cac.AssetOutput, row table.Row) table.Row {
 	switch asset.Status {
 	case cac.ASSETSTATUS_DEPLOYED:
@@ -25,7 +27,6 @@ func colorizeFromStatus(asset cac.AssetOutput, row table.Row) table.Row {
 	}
 }
 
-// generateAssetRowFromData - generate a common table row for assets
 func generateRowFromData(asset cac.AssetOutput) table.Row {
 	assetName := GetName(asset)
 	assetStr := strings.Split(asset.Asset, "__")
@@ -40,11 +41,10 @@ func generateRowFromData(asset cac.AssetOutput) table.Row {
 	return colorizeFromStatus(asset, row)
 }
 
-// dataStoreTable - prints out a table of assets
-func AssetTable(orgOutput interface{}) table.Model {
+func AssetTable(output interface{}) table.Model {
 	rows := make([]table.Row, 0)
 
-	switch data := orgOutput.(type) {
+	switch data := output.(type) {
 	case []cac.AssetOutput:
 		for _, asset := range data {
 			rows = append(rows, generateRowFromData(asset))
@@ -61,4 +61,36 @@ func AssetTable(orgOutput interface{}) table.Model {
 		table.NewColumn("asset_type", "Type", 20).WithStyle(common.DefaultRowStyle()),
 		table.NewColumn("asset_version", "Version", 20).WithStyle(common.DefaultRowStyle()),
 	}).WithRows(rows)
+}
+
+func generateRowFromBundleData(bundle cac.AssetBundle) table.Row {
+	row := table.NewRow(table.RowData{
+		"id":          bundle.Identifier,
+		"name":        bundle.Name,
+		"description": bundle.Description,
+	})
+	return row
+}
+
+func AssetBundleTable(output interface{}) table.Model {
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		fmt.Println(err)
+	}
+	rows := make([]table.Row, 0)
+
+	switch data := output.(type) {
+	case []cac.AssetBundle:
+		for _, bundle := range data {
+			rows = append(rows, generateRowFromBundleData(bundle))
+		}
+	case *cac.AssetBundle:
+		rows = append(rows, generateRowFromBundleData(*data))
+	}
+
+	return table.New([]table.Column{
+		table.NewFlexColumn("id", "Id", 1).WithStyle(common.LeftRowStyle()),
+		table.NewFlexColumn("name", "Name", 1).WithStyle(common.LeftRowStyle()),
+		table.NewFlexColumn("description", "Description", 3).WithStyle(common.LeftRowStyle()),
+	}).WithRows(rows).WithTargetWidth(width)
 }

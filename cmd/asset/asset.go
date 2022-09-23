@@ -62,6 +62,34 @@ func assetDescribeRun() config.CobraRunE {
 	return describeAsset()
 }
 
+func assetBundleRun() config.CobraRunE {
+	return func(cmd *cobra.Command, args []string) error {
+		config := config.NewCloudConfig(viper.GetViper())
+		formResult := form.FormResult{
+			Org: config.Vconfig.GetString("org"),
+			Env: config.Vconfig.GetString("env"),
+		}
+		err := libenv.EnvForm(config, &formResult)
+		if err != nil {
+			return nil
+		}
+
+		msg := fmt.Sprintf("fetching available asset bundles for environment %s", formResult.Env)
+		model := fetch.NewModel(msg, func() (interface{}, error) {
+			return config.Cc.ListAssetBundles(formResult.Org, formResult.Env)
+		})
+		result, err := fetch.WithOutput(model)
+		if err != nil {
+			return err
+		}
+
+		table := libasset.AssetBundleTable(result.Result.([]cac.AssetBundle))
+		fmt.Println(table.View())
+
+		return nil
+	}
+}
+
 // destroyAsset - aliased func but also can destroy assets on top level (rds/vpc for example use this)
 func destroyAsset() config.CobraRunE {
 	return func(cmd *cobra.Command, args []string) error {
@@ -238,6 +266,14 @@ func NewAssetCmd() *cobra.Command {
 		RunE:    assetDescribeRun(),
 	}
 
+	assetBundleCmd := &cobra.Command{
+		Use:     "bundle",
+		Short:   "Show asset bundles available for an environment",
+		Long:    `The asset bundle command returns all assets available for an environment`,
+		Aliases: []string{"bundle", "b"},
+		RunE:    assetBundleRun(),
+	}
+
 	assetCreateCmd.Flags().StringVarP(&assetOptions.VpcName, "vpc-name", "", "", "vpc name to create the asset in")
 	assetCreateCmd.Flags().StringVarP(&assetOptions.AssetName, "asset-name", "", "", "asset name")
 	assetCreateCmd.Flags().StringVarP(&assetOptions.AssetType, "asset-type", "", "", "asset type")
@@ -251,6 +287,7 @@ func NewAssetCmd() *cobra.Command {
 	assetCmd.AddCommand(assetDestroyCmd)
 	assetCmd.AddCommand(assetListCmd)
 	assetCmd.AddCommand(assetDescribeCmd)
+	assetCmd.AddCommand(assetBundleCmd)
 
 	return assetCmd
 }
