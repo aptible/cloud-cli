@@ -8,11 +8,15 @@ import (
 
 func GetName(asset cac.AssetOutput) string {
 	assetName := asset.CurrentAssetParameters.Data["name"]
-	if assetName == "" {
-		assetName = "N/A"
+	switch data := assetName.(type) {
+	case string:
+		if data == "" {
+			return "N/A"
+		}
+		return data
+	default:
+		return "N/A"
 	}
-
-	return assetName.(string)
 }
 
 func FilterByType(assets []cac.AssetOutput, types []string) []cac.AssetOutput {
