@@ -6,6 +6,14 @@ import (
 	"github.com/evertras/bubble-table/table"
 )
 
+func safeString(str *string) string {
+	if str == nil {
+		return "unknown"
+	}
+
+	return *str
+}
+
 // prints out a table of environments
 func EnvTable(orgOutput interface{}) table.Model {
 	rows := make([]table.Row, 0)
@@ -16,14 +24,14 @@ func EnvTable(orgOutput interface{}) table.Model {
 			rows = append(rows, table.NewRow(table.RowData{
 				"id":             env.Id,
 				"name":           env.Name,
-				"aws_account_id": *env.AwsAccountId,
+				"aws_account_id": safeString(env.AwsAccountId),
 			}))
 		}
 	case *cac.EnvironmentOutput:
 		rows = append(rows, table.NewRow(table.RowData{
 			"id":             data.Id,
 			"name":           data.Name,
-			"aws_account_id": *data.AwsAccountId,
+			"aws_account_id": safeString(data.AwsAccountId),
 		}))
 	}
 
